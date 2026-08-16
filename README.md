@@ -61,12 +61,6 @@ Colors, spacing, and animation timing live in the `C` and `TWEEN` tables near
 the top of `main.lua`. Icons are keyed by name in the `ICONS` table — pass any
 of those keys, or a raw `rbxassetid://...`, to `Icon = ...` on tabs.
 
-## Links
-
-<!-- TODO: fill in your real links, or delete lines you don't have -->
-- Discord Server: `<your invite link>`
-- Documentation: `<your docs site>`
-
 ## Hosting
 
 This repo is deployed on Vercel with `Cache-Control: no-store` (see
