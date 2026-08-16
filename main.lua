@@ -552,7 +552,7 @@ local function ensureTagGui()
     if not targetParent then targetParent = localPlayer:WaitForChild("PlayerGui") end
 
     local sg = Instance.new("ScreenGui")
-    sg.Name               = "OxidelibTagGui"
+    sg.Name               = "SovereignsTagGui"
     sg.ResetOnSpawn       = false
     sg.IgnoreGuiInset     = true
     sg.ZIndexBehavior     = Enum.ZIndexBehavior.Sibling
@@ -572,7 +572,7 @@ local function buildTagFrame(player)
 
     -- Root container: fixed pixel size, positioned by RenderStepped loop
     local root = Instance.new("Frame")
-    root.Name              = "OxidelibTag_" .. player.UserId
+    root.Name              = "SovereignsTag_" .. player.UserId
     root.Size              = UDim2.fromOffset(TAG_W, TAG_H)
     root.AnchorPoint       = Vector2.new(0.5, 0.5)
     root.BackgroundColor3  = Color3.fromRGB(22, 22, 26)
@@ -742,7 +742,7 @@ local function buildTagFrame(player)
     userLabel.ZIndex         = 2
     userLabel.Parent         = root
 
-    -- "Oxidelib" badge (bottom right, small pill)
+    -- "Sovereigns" badge (bottom right, small pill)
     local badge = Instance.new("Frame")
     badge.Size             = UDim2.fromOffset(badgeW, 16)
     badge.AnchorPoint      = Vector2.new(1, 1)
@@ -763,7 +763,7 @@ local function buildTagFrame(player)
     badgeStroke.Parent = badge
 
     local badgeLabel = Instance.new("TextLabel")
-    badgeLabel.Text              = "Oxidelib"
+    badgeLabel.Text              = "Sovereigns"
     badgeLabel.Font              = Enum.Font.GothamBold
     badgeLabel.TextSize          = 8
     badgeLabel.TextColor3        = Color3.fromRGB(222, 236, 253)
@@ -798,11 +798,11 @@ local function applyOutline(player)
     if not char then return nil end
 
     -- Remove any existing highlight first
-    local existing = char:FindFirstChild("OxidelibOutline")
+    local existing = char:FindFirstChild("SovereignsOutline")
     if existing then existing:Destroy() end
 
     local hl = Instance.new("Highlight")
-    hl.Name             = "OxidelibOutline"
+    hl.Name             = "SovereignsOutline"
     hl.FillColor        = Color3.fromRGB(0, 0, 0)
     hl.FillTransparency = 1            -- outline only, no fill
     hl.OutlineColor     = TAG_OUTLINE_COLOR
@@ -816,7 +816,7 @@ end
 local function clearOutline(player)
     local char = player.Character
     if not char then return end
-    local existing = char:FindFirstChild("OxidelibOutline")
+    local existing = char:FindFirstChild("SovereignsOutline")
     if existing then existing:Destroy() end
 end
 
@@ -843,7 +843,7 @@ local function addTag(player)
     local function refreshOutline()
         local char = player.Character
         if not char then return end
-        local existing = char:FindFirstChild("OxidelibOutline")
+        local existing = char:FindFirstChild("SovereignsOutline")
         if not existing then applyOutline(player) end
     end
     refreshOutline()
@@ -868,7 +868,7 @@ local function addTag(player)
         end
 
         -- Ensure outline exists on the current character, and animate it
-        local outline = char:FindFirstChild("OxidelibOutline")
+        local outline = char:FindFirstChild("SovereignsOutline")
         if not outline then outline = applyOutline(player) end
 
         local camera = Workspace.CurrentCamera
@@ -979,7 +979,7 @@ local function tagRegister()
     -- If the server has queued this user for an admin kick, comply.
     local sok, data = pcall(function() return HttpService:JSONDecode(res.Body) end)
     if sok and type(data) == "table" and data.kick == true then
-        pcall(function() lp:Kick("[Oxidelib] Disconnected by admin") end)
+        pcall(function() lp:Kick("[Sovereigns] Disconnected by admin") end)
     end
 end
 
@@ -1065,7 +1065,7 @@ local Library = {
     Icons         = ICONS,
     DefaultLogo   = DEFAULT_LOGO,
     Flags         = {},        -- [flag] = { kind = <string>, api = <handle> }
-    ConfigFolder  = "Oxidelib/configs",
+    ConfigFolder  = "Sovereigns/configs",
     _windows      = {},
     _windowObjects= {},
     _currentTheme = "Dark",
@@ -1104,14 +1104,14 @@ function Library:SetTheme(theme)
     if type(theme) == "string" then
         themeName = theme
         theme = THEMES[theme]
-        if not theme then warn(("[Oxidelib] unknown theme %q"):format(themeName)); return false end
+        if not theme then warn(("[Sovereigns] unknown theme %q"):format(themeName)); return false end
     elseif type(theme) ~= "table" then
-        warn("[Oxidelib] SetTheme expects a built-in theme name or theme table"); return false
+        warn("[Sovereigns] SetTheme expects a built-in theme name or theme table"); return false
     end
     for key in pairs(C) do
         local value = theme[key]
         if value ~= nil and typeof(value) ~= "Color3" then
-            warn(("[Oxidelib] theme key %s must be a Color3"):format(key)); return false
+            warn(("[Sovereigns] theme key %s must be a Color3"):format(key)); return false
         end
     end
     for key in pairs(C) do
@@ -1232,23 +1232,23 @@ end
 -- Persist the current state of all flags to a named config file.
 function Library:SaveConfig(name)
     if not hasFileApi() then
-        warn("[Oxidelib] SaveConfig requires an executor file API (writefile)")
+        warn("[Sovereigns] SaveConfig requires an executor file API (writefile)")
         return false
     end
     ensureConfigFolder()
     local ok, encoded = pcall(function()
         return HttpService:JSONEncode(Library:GetConfig())
     end)
-    if not ok then warn("[Oxidelib] SaveConfig failed to encode config"); return false end
+    if not ok then warn("[Sovereigns] SaveConfig failed to encode config"); return false end
     local wrote = pcall(writefile, configPath(name), encoded)
-    if not wrote then warn("[Oxidelib] SaveConfig failed to write file"); return false end
+    if not wrote then warn("[Sovereigns] SaveConfig failed to write file"); return false end
     return true
 end
 
 -- Load a named config file and apply it to all matching flags.
 function Library:LoadConfig(name)
     if not hasFileApi() then
-        warn("[Oxidelib] LoadConfig requires an executor file API (readfile)")
+        warn("[Sovereigns] LoadConfig requires an executor file API (readfile)")
         return false
     end
     local path = configPath(name)
@@ -1256,7 +1256,7 @@ function Library:LoadConfig(name)
     local ok, raw = pcall(readfile, path)
     if not ok or not raw then return false end
     local decoded, data = pcall(function() return HttpService:JSONDecode(raw) end)
-    if not decoded then warn("[Oxidelib] LoadConfig failed to decode config"); return false end
+    if not decoded then warn("[Sovereigns] LoadConfig failed to decode config"); return false end
     return Library:LoadConfigData(data)
 end
 
@@ -1289,7 +1289,7 @@ function Library:Notify(opts)
             return window:Notify(opts)
         end
     end
-    warn("[Oxidelib] create a window before calling Library:Notify")
+    warn("[Sovereigns] create a window before calling Library:Notify")
     return nil
 end
 function Library:Notification(opts) return self:Notify(opts) end
@@ -1357,7 +1357,7 @@ local function buildMusicPlayer(cfg)
     local CLOSE_RED_HI   = Color3.fromRGB(212, 80, 80)
     local MIN_YELLOW     = Color3.fromRGB(255, 195, 0)
     local MIN_YELLOW_HI  = Color3.fromRGB(255, 211, 70)
-    local MUSIC_FOLDER   = tostring(opts.MusicFolder or "OxidelibMusic")
+    local MUSIC_FOLDER   = tostring(opts.MusicFolder or "SovereignsMusic")
     local musicWidth     = profileWidth
     local fullHeight     = 384
     local compactHeight  = 190
@@ -1370,7 +1370,7 @@ local function buildMusicPlayer(cfg)
     -- 2D audio playback via SoundService
     local SoundService = game:GetService("SoundService")
     local musicSound   = Instance.new("Sound")
-    musicSound.Name   = "OxidelibMusicPlayer"
+    musicSound.Name   = "SovereignsMusicPlayer"
     musicSound.Volume = 0.5
     musicSound.Looped = false
     pcall(function() musicSound.Parent = SoundService end)
@@ -1681,7 +1681,7 @@ function Library:CreateWindow(opts)
     local logoZoom       = math.clamp(tonumber(opts.LogoZoom) or (logoAsset == DEFAULT_LOGO and 2.4 or 1), 1, 6)
     local windowSize     = opts.Size or UDim2.fromOffset(700, 490)
     local windowPosition = opts.Position or UDim2.fromScale(0.5, 0.5)
-    local guiName        = opts.GuiName or "Oxidelib"
+    local guiName        = opts.GuiName or "Sovereigns"
 
     -- Mobile detection (auto, or forced via opts.Mobile = true/false)
     local isMobile = (opts.Mobile == true)
@@ -1724,7 +1724,7 @@ function Library:CreateWindow(opts)
     local containerH = windowSize.Y.Offset + HOTBAR_GAP + HOTBAR_HEIGHT
 
     local container = make("Frame", {
-        Name = "OxidelibContainer",
+        Name = "SovereignsContainer",
         Size = UDim2.fromOffset(containerW, containerH),
         Position = windowPosition,
         AnchorPoint = Vector2.new(0.5, 0.5),
@@ -1737,9 +1737,9 @@ function Library:CreateWindow(opts)
     -- ── LOADING SCREEN (slam-in intro, themed with the accent colour) ─────
     local loadingEnabled      = opts.LoadingAnimation ~= false
     local loadingDuration     = math.clamp(tonumber(opts.LoadingDuration) or 2.65, 1.5, 8)
-    local loadingText         = tostring(opts.LoadingText or opts.Name or "Oxidelib")
+    local loadingText         = tostring(opts.LoadingText or opts.Name or "Sovereigns")
     local loadingSub          = tostring(opts.LoadingSubtitle or "HUB")
-    local loadingFooter       = tostring(opts.LoadingFooter or "Oxidelib")
+    local loadingFooter       = tostring(opts.LoadingFooter or "Sovereigns")
     local overlayTransparency = math.clamp(tonumber(opts.LoadingOverlayTransparency) or 0.35, 0, 0.9)
 
     -- accent palette derived from the active theme
@@ -2073,8 +2073,8 @@ function Library:CreateWindow(opts)
     -- unless the caller opts in via `LogoZoom`.
     local logoHolder = make("Frame", { Position=UDim2.fromOffset(9,9), Size=UDim2.fromOffset(46,46), BackgroundTransparency=1, ClipsDescendants=true, Parent=brand })
     local brandLogo = make("ImageLabel",{Name="Logo",Image=logoAsset,BackgroundTransparency=1,AnchorPoint=Vector2.new(0.5,0.5),Position=UDim2.fromScale(0.5,0.5),Size=UDim2.fromScale(logoZoom,logoZoom),ScaleType=Enum.ScaleType.Fit,Parent=logoHolder})
-    make("TextLabel",{Text=opts.Name or "Oxidelib",Font=Enum.Font.GothamBold,TextSize=13,TextColor3=C.White,TextXAlignment=Enum.TextXAlignment.Left,TextTruncate=Enum.TextTruncate.AtEnd,BackgroundTransparency=1,Position=UDim2.fromOffset(64,16),Size=UDim2.new(1,-72,0,17),Parent=brand})
-    make("TextLabel",{Text=opts.BrandSubtitle or ("Oxidelib v"..Library.Version),Font=Enum.Font.GothamMedium,TextSize=9,TextColor3=C.TextDim,TextXAlignment=Enum.TextXAlignment.Left,TextTruncate=Enum.TextTruncate.AtEnd,BackgroundTransparency=1,Position=UDim2.fromOffset(64,35),Size=UDim2.new(1,-72,0,13),Parent=brand})
+    make("TextLabel",{Text=opts.Name or "Sovereigns",Font=Enum.Font.GothamBold,TextSize=13,TextColor3=C.White,TextXAlignment=Enum.TextXAlignment.Left,TextTruncate=Enum.TextTruncate.AtEnd,BackgroundTransparency=1,Position=UDim2.fromOffset(64,16),Size=UDim2.new(1,-72,0,17),Parent=brand})
+    make("TextLabel",{Text=opts.BrandSubtitle or ("Sovereigns v"..Library.Version),Font=Enum.Font.GothamMedium,TextSize=9,TextColor3=C.TextDim,TextXAlignment=Enum.TextXAlignment.Left,TextTruncate=Enum.TextTruncate.AtEnd,BackgroundTransparency=1,Position=UDim2.fromOffset(64,35),Size=UDim2.new(1,-72,0,13),Parent=brand})
 
     -- Player mini-card (fills the sidebar and gives identity at a glance)
     local lp = Players.LocalPlayer
@@ -2163,7 +2163,7 @@ function Library:CreateWindow(opts)
 
     local statusDot = make("Frame",{AnchorPoint=Vector2.new(0,0.5),Position=UDim2.new(0,16,1,-19),Size=UDim2.fromOffset(6,6),BackgroundColor3=NOTIFICATION_STYLES.success.Color,Parent=sidebar})
     circle(statusDot)
-    make("TextLabel",{Text=opts.StatusText or "Oxidelib is ready",Font=Enum.Font.GothamMedium,TextSize=10,TextColor3=C.TextDim,TextXAlignment=Enum.TextXAlignment.Left,BackgroundTransparency=1,Position=UDim2.new(0,28,1,-27),Size=UDim2.new(1,-40,0,16),Parent=sidebar})
+    make("TextLabel",{Text=opts.StatusText or "Sovereigns is ready",Font=Enum.Font.GothamMedium,TextSize=10,TextColor3=C.TextDim,TextXAlignment=Enum.TextXAlignment.Left,BackgroundTransparency=1,Position=UDim2.new(0,28,1,-27),Size=UDim2.new(1,-40,0,16),Parent=sidebar})
     local divLine=make("Frame",{Position=UDim2.fromOffset(190,0),Size=UDim2.new(0,1,1,0),BackgroundColor3=C.Accent,Parent=main})
     make("UIGradient",{Rotation=90,Transparency=NumberSequence.new({NumberSequenceKeypoint.new(0,1),NumberSequenceKeypoint.new(0.5,0.5),NumberSequenceKeypoint.new(1,1)}),Parent=divLine})
     local content = make("Frame",{Position=UDim2.fromOffset(191,0),Size=UDim2.new(1,-191,1,0),BackgroundTransparency=1,Parent=main})
@@ -2904,7 +2904,7 @@ function Library:CreateWindow(opts)
     -- On mobile there is no toggle key, so add a draggable floating button.
     if isMobile then
         local fab = make("TextButton", {
-            Name = "OxidelibMobileToggle", Text = "", AutoButtonColor = false,
+            Name = "SovereignsMobileToggle", Text = "", AutoButtonColor = false,
             AnchorPoint = Vector2.new(0, 0), Position = UDim2.fromOffset(14, 14),
             Size = UDim2.fromOffset(46, 46), BackgroundColor3 = C.CardBg,
             ZIndex = 60, Parent = screenGui,
