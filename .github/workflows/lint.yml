@@ -1,0 +1,29 @@
+name: Lint
+
+on:
+  push:
+    paths:
+      - "main.lua"
+  pull_request:
+    paths:
+      - "main.lua"
+  workflow_dispatch:
+
+jobs:
+  syntax-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Lua 5.1
+        run: sudo apt-get update && sudo apt-get install -y lua5.1
+
+      - name: Parse-check main.lua
+        run: luac5.1 -p main.lua
+
+      - name: Sanity-check public API
+        run: |
+          grep -q "^return Library" main.lua || (echo "main.lua must end with 'return Library'" && exit 1)
+          grep -q "function Library:CreateWindow" main.lua || (echo "CreateWindow is missing" && exit 1)
+          echo "OK: main.lua looks structurally intact."
