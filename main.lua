@@ -2256,18 +2256,44 @@ function Library:CreateWindow(opts)
     local minimized = false
     local mainTopButtons = {}
     local burgerButton
+    local burgerScale
     local windowRef
     local noDrag = {}
     table.insert(noDrag, hotbar)
 
+    local mainScale = make("UIScale", { Scale = 1, Parent = main })
+
     local function setMinimized(o)
+        local was = minimized
         minimized = o == true
         for _, b in ipairs(mainTopButtons) do if b and b.Parent then b.Visible = not minimized end end
-        if burgerButton and burgerButton.Parent then burgerButton.Visible = minimized end
-        main.Visible = not minimized
-        hotbar.Visible = not minimized
         for _, s in ipairs(shadowFrames) do if s and s.Parent then s.Visible = not minimized end end
         if windowRef then windowRef._minimized = minimized end
+        if minimized then
+            -- Morph the window down into the island: shrink `main` toward
+            -- its top edge, then reveal the island and pop it in with a
+            -- slight overshoot — same spirit as a Dynamic Island expanding
+            -- from/collapsing into a small pill.
+            hotbar.Visible = false
+            TweenService:Create(mainScale, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.In), { Scale = 0.85 }):Play()
+            task.delay(0.16, function()
+                if main and main.Parent then main.Visible = false; mainScale.Scale = 1 end
+                if burgerButton and burgerButton.Parent then
+                    burgerButton.Visible = true
+                    burgerScale.Scale = 0.5
+                    TweenService:Create(burgerScale, TweenInfo.new(0.42, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Scale = 1 }):Play()
+                end
+            end)
+        elseif was then
+            -- Morph the island back up into the full window.
+            if burgerButton and burgerButton.Parent then
+                TweenService:Create(burgerScale, TweenInfo.new(0.16, Enum.EasingStyle.Quad, Enum.EasingDirection.In), { Scale = 0.5 }):Play()
+                task.delay(0.14, function() burgerButton.Visible = false; burgerScale.Scale = 1 end)
+            end
+            main.Visible = true; hotbar.Visible = true
+            mainScale.Scale = 0.9
+            TweenService:Create(mainScale, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Scale = 1 }):Play()
+        end
     end
 
     local controls = make("Frame", {
@@ -2292,18 +2318,42 @@ function Library:CreateWindow(opts)
     table.insert(mainTopButtons, closeBtn); table.insert(mainTopButtons, minimizeBtn)
     table.insert(noDrag, closeBtn); table.insert(noDrag, minimizeBtn)
 
+    -- ── "Dynamic Island" minimized state ────────────────────────────────
+    -- A dark capsule docked at top-center of the screen (mirrors the
+    -- referenced DynamicWin style) instead of a plain corner button.
+    -- Pill-shaped (corner radius = half height), logo on the left, a
+    -- soft breathing accent glow, and a scale-based pop animation driven
+    -- by setMinimized() above.
     burgerButton = make("TextButton", {
-        Text = "", Font = Enum.Font.GothamBold, TextSize = 13, TextColor3 = C.White,
-        AnchorPoint = Vector2.new(1,0), Position = UDim2.new(1,-12,0,12),
-        Size = UDim2.fromOffset(34,18), BackgroundColor3 = C.CardBg,
+        Name = "Island", Text = "", AutoButtonColor = false,
+        AnchorPoint = Vector2.new(0.5,0), Position = UDim2.new(0.5,0,0,10),
+        Size = UDim2.fromOffset(132,34), BackgroundColor3 = Color3.fromRGB(14,14,16),
         Visible = false, ZIndex = 11, Parent = screenGui,
     })
-    corner(burgerButton, 10); stroke(burgerButton, C.Border)
-    local bih = make("Frame", { BackgroundTransparency=1, Position=UDim2.fromOffset(6,0), Size=UDim2.fromOffset(18,18), Parent=burgerButton, ZIndex=12 })
-    make("Frame",{BackgroundColor3=C.White,Size=UDim2.fromOffset(12,2),Position=UDim2.fromOffset(3,4), Parent=bih,ZIndex=13})
-    make("Frame",{BackgroundColor3=C.White,Size=UDim2.fromOffset(12,2),Position=UDim2.fromOffset(3,8), Parent=bih,ZIndex=13})
-    make("Frame",{BackgroundColor3=C.White,Size=UDim2.fromOffset(12,2),Position=UDim2.fromOffset(3,12),Parent=bih,ZIndex=13})
-    make("ImageLabel",{Name="BurgerLogo",Image=logoAsset,BackgroundTransparency=1,Position=UDim2.fromOffset(26,5),Size=UDim2.fromOffset(8,8),ZIndex=14,ScaleType=Enum.ScaleType.Fit,Parent=burgerButton})
+    corner(burgerButton, 17)
+    burgerScale = make("UIScale", { Scale = 1, Parent = burgerButton })
+    local islandGlow = make("UIStroke", { Color = C.Accent, Thickness = 1.2, Transparency = 0.55, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Parent = burgerButton })
+    islandGlow:SetAttribute("Theme_Color","Accent")
+    local islandDot = make("Frame", { AnchorPoint=Vector2.new(0,0.5), Position=UDim2.fromOffset(14,17), Size=UDim2.fromOffset(6,6), BackgroundColor3=C.Accent, ZIndex=13, Parent=burgerButton })
+    circle(islandDot)
+    make("ImageLabel",{Name="IslandLogo",Image=logoAsset,BackgroundTransparency=1,AnchorPoint=Vector2.new(0,0.5),Position=UDim2.fromOffset(28,17),Size=UDim2.fromOffset(16,16),ZIndex=13,ScaleType=Enum.ScaleType.Fit,Parent=burgerButton})
+    make("TextLabel",{Name="IslandLabel",Text="Tap to expand",Font=Enum.Font.GothamMedium,TextSize=11,TextColor3=C.TextGray,TextXAlignment=Enum.TextXAlignment.Left,BackgroundTransparency=1,AnchorPoint=Vector2.new(0,0.5),Position=UDim2.fromOffset(52,17),Size=UDim2.new(1,-64,0,14),ZIndex=13,Parent=burgerButton})
+    -- Slow breathing pulse on the glow so the island reads as "alive"
+    -- while sitting minimized, like the reference project's idle state.
+    local islandBreatheConn
+    islandBreatheConn = RunService.RenderStepped:Connect(function()
+        if not burgerButton or not burgerButton.Parent then if islandBreatheConn then islandBreatheConn:Disconnect() end return end
+        if not burgerButton.Visible then return end
+        islandGlow.Transparency = 0.55 + math.sin(os.clock()*2.2)*0.2
+    end)
+    burgerButton.MouseEnter:Connect(function()
+        TweenService:Create(burgerScale, TWEEN, { Scale = 1.05 }):Play()
+        tween(burgerButton, { BackgroundColor3 = Color3.fromRGB(22,22,25) })
+    end)
+    burgerButton.MouseLeave:Connect(function()
+        TweenService:Create(burgerScale, TWEEN, { Scale = 1 }):Play()
+        tween(burgerButton, { BackgroundColor3 = Color3.fromRGB(14,14,16) })
+    end)
 
     burgerButton.MouseButton1Click:Connect(function() setMinimized(false) end)
     closeBtn.MouseButton1Click:Connect(function()
@@ -3810,6 +3860,84 @@ function SubTab:AddInput(opts)
     return registerFlag(opts.Flag, "input", {Set=function(_,t) box.Text=tostring(t) end, Get=function() return box.Text end})
 end
 
+-- A complete, drop-in config manager: name box + Save / Load / Delete /
+-- Refresh, a live list of what's already saved, and a "Load Last" button
+-- that pulls whatever config the player used most recently. Everything
+-- routes through Library:SaveConfig / LoadConfig / ListConfigs /
+-- DeleteConfig, so it always matches whatever flags exist in this window.
+function SubTab:AddConfigManager(opts)
+    opts=opts or {}
+    self:AddSection(opts.Name or "Config")
+
+    local nameRow=newRow(self._card,30); rowLabels(nameRow,"Config Name",opts.Description or "Used for save / load / delete",0)
+    local holder=make("Frame",{Size=UDim2.fromOffset(170,22),AnchorPoint=Vector2.new(1,0.5),Position=UDim2.new(1,0,0.5,0),BackgroundColor3=C.Element,Parent=nameRow})
+    corner(holder,8)
+    local box=make("TextBox",{Text="",PlaceholderText=opts.Placeholder or "default",PlaceholderColor3=C.Placeholder,Font=Enum.Font.Gotham,TextSize=12,TextColor3=C.TextGray,TextXAlignment=Enum.TextXAlignment.Left,BackgroundTransparency=1,ClearTextOnFocus=false,ClipsDescendants=true,Position=UDim2.fromOffset(8,0),Size=UDim2.new(1,-16,1,0),Parent=holder})
+    inputIcon(holder)
+
+    local btnRow=make("Frame",{Size=UDim2.new(1,0,0,28),BackgroundTransparency=1,Parent=self._card}); autoOrder(btnRow)
+    make("UIListLayout",{FillDirection=Enum.FillDirection.Horizontal,SortOrder=Enum.SortOrder.LayoutOrder,Padding=UDim.new(0,8),Parent=btnRow})
+    local function miniBtn(text,primary)
+        local b=make("TextButton",{Text=text,Font=primary and Enum.Font.GothamBold or Enum.Font.GothamMedium,TextSize=11,TextColor3=primary and C.AccentText or C.TextGray,AutomaticSize=Enum.AutomaticSize.X,Size=UDim2.new(0,0,1,0),BackgroundColor3=primary and C.Accent or C.Element,Parent=btnRow})
+        corner(b,8); pad(b,0,0,12,12)
+        local scale=make("UIScale",{Scale=1,Parent=b})
+        b.MouseEnter:Connect(function() if primary then tween(b,{BackgroundTransparency=0.14}) else tween(b,{BackgroundColor3=C.ElementHover}) end; TweenService:Create(scale,TWEEN,{Scale=1.04}):Play() end)
+        b.MouseLeave:Connect(function() if primary then tween(b,{BackgroundTransparency=0}) else tween(b,{BackgroundColor3=C.Element}) end; TweenService:Create(scale,TWEEN,{Scale=1}):Play() end)
+        return b
+    end
+    local saveBtn=miniBtn("Save",true)
+    local loadBtn=miniBtn("Load")
+    local loadLastBtn=miniBtn("Load Last")
+    local deleteBtn=miniBtn("Delete")
+    local refreshBtn=miniBtn("Refresh")
+
+    local list=self:AddParagraph({Title="Saved Configs", Text="Loading..."})
+
+    local function nameOrDefault()
+        local n=box.Text; if n=="" then n="default" end; return n
+    end
+    local function refreshList()
+        local ok, names = pcall(function() return Library:ListConfigs() end)
+        if not ok or type(names)~="table" or #names==0 then
+            list:Set("No configs saved yet.")
+            return
+        end
+        table.sort(names)
+        list:Set(table.concat(names, ", "))
+    end
+
+    saveBtn.MouseButton1Click:Connect(function()
+        local n=nameOrDefault()
+        local ok=Library:SaveConfig(n)
+        Library:Notify({Title="Config", Content=ok and ("Saved '"..n.."'.") or "Save failed — check the executor's file API.", Style=ok and "success" or "error"})
+        if ok then refreshList() end
+    end)
+    loadBtn.MouseButton1Click:Connect(function()
+        local n=nameOrDefault()
+        local ok=Library:LoadConfig(n)
+        Library:Notify({Title="Config", Content=ok and ("Loaded '"..n.."'.") or ("Couldn't find or load '"..n.."'."), Style=ok and "success" or "warning"})
+    end)
+    loadLastBtn.MouseButton1Click:Connect(function()
+        local last=Library:GetLastConfig()
+        if not last then
+            Library:Notify({Title="Config", Content="No config has been used yet.", Style="info"})
+            return
+        end
+        local ok=Library:LoadConfig(last)
+        Library:Notify({Title="Config", Content=ok and ("Loaded last config '"..last.."'.") or "Failed to load the last config.", Style=ok and "success" or "error"})
+    end)
+    deleteBtn.MouseButton1Click:Connect(function()
+        local n=nameOrDefault()
+        local ok=Library:DeleteConfig(n)
+        Library:Notify({Title="Config", Content=ok and ("Deleted '"..n.."'.") or ("Couldn't delete '"..n.."'."), Style=ok and "success" or "warning"})
+        if ok then refreshList() end
+    end)
+    refreshBtn.MouseButton1Click:Connect(refreshList)
+
+    refreshList()
+    return {RefreshList=refreshList}
+end
+
 function SubTab:AddDropdown(opts)
     opts=opts or {}
     local options=opts.Options or {}; local value=opts.Default or options[1] or ""
@@ -3821,8 +3949,8 @@ function SubTab:AddDropdown(opts)
     local vl=make("TextLabel",{Text=tostring(value),Font=Enum.Font.Gotham,TextSize=12,TextColor3=C.TextGray,TextXAlignment=Enum.TextXAlignment.Left,TextTruncate=Enum.TextTruncate.AtEnd,BackgroundTransparency=1,Position=UDim2.fromOffset(8,0),Size=UDim2.new(1,-26,1,0),Parent=btn})
     sortIcon(btn)
     local win=self._window; local sp=self._page; local tp=self._tab._page
-    local list=make("Frame",{Visible=false,Active=true,Position=UDim2.fromOffset(0,0),Size=UDim2.new(0,LW,0,0),BackgroundColor3=C.Element,ClipsDescendants=true,ZIndex=100,Parent=win.ScreenGui})
-    corner(list,6);stroke(list); table.insert(win._noDrag,list)
+    local list=make("Frame",{Visible=false,Active=true,Position=UDim2.fromOffset(0,0),Size=UDim2.new(0,LW,0,0),BackgroundColor3=C.Element,BackgroundTransparency=0.08,ClipsDescendants=true,ZIndex=100,Parent=win.ScreenGui})
+    corner(list,10);local listGlow=stroke(list,C.Accent);listGlow.Transparency=0.55;listGlow.Thickness=1; table.insert(win._noDrag,list)
     local sb; local fq=""
     if searchable then
         local sh=make("Frame",{Position=UDim2.fromOffset(4,4),Size=UDim2.new(1,-8,0,SH-4),BackgroundColor3=C.WindowBg,ZIndex=101,Parent=list}); corner(sh,4)
@@ -3909,8 +4037,8 @@ function SubTab:AddMultiDropdown(opts)
     local vl=make("TextLabel",{Text="None",Font=Enum.Font.Gotham,TextSize=12,TextColor3=C.TextGray,TextXAlignment=Enum.TextXAlignment.Left,TextTruncate=Enum.TextTruncate.AtEnd,BackgroundTransparency=1,Position=UDim2.fromOffset(8,0),Size=UDim2.new(1,-26,1,0),Parent=btn})
     sortIcon(btn)
     local win=self._window; local sp=self._page; local tp=self._tab._page
-    local list=make("Frame",{Visible=false,Active=true,Position=UDim2.fromOffset(0,0),Size=UDim2.new(0,LW,0,0),BackgroundColor3=C.Element,ClipsDescendants=true,ZIndex=100,Parent=win.ScreenGui})
-    corner(list,6);stroke(list); table.insert(win._noDrag,list)
+    local list=make("Frame",{Visible=false,Active=true,Position=UDim2.fromOffset(0,0),Size=UDim2.new(0,LW,0,0),BackgroundColor3=C.Element,BackgroundTransparency=0.08,ClipsDescendants=true,ZIndex=100,Parent=win.ScreenGui})
+    corner(list,10);local listGlow=stroke(list,C.Accent);listGlow.Transparency=0.55;listGlow.Thickness=1; table.insert(win._noDrag,list)
     local sb; local fq=""
     if searchable then
         local sh=make("Frame",{Position=UDim2.fromOffset(4,4),Size=UDim2.new(1,-8,0,SH-4),BackgroundColor3=C.WindowBg,ZIndex=101,Parent=list}); corner(sh,4)
@@ -4070,8 +4198,8 @@ function SubTab:AddColorPicker(opts)
 
     local win=self._window; local sp=self._page; local tp=self._tab._page
     local PW=200
-    local panel=make("Frame",{Visible=false,Active=true,Size=UDim2.fromOffset(PW,0),BackgroundColor3=C.Element,ClipsDescendants=true,ZIndex=100,Parent=win.ScreenGui})
-    corner(panel,6);stroke(panel); table.insert(win._noDrag,panel)
+    local panel=make("Frame",{Visible=false,Active=true,Size=UDim2.fromOffset(PW,0),BackgroundColor3=C.Element,BackgroundTransparency=0.08,ClipsDescendants=true,ZIndex=100,Parent=win.ScreenGui})
+    corner(panel,10);local panelGlow=stroke(panel,C.Accent);panelGlow.Transparency=0.55;panelGlow.Thickness=1; table.insert(win._noDrag,panel)
     local inner=make("Frame",{Position=UDim2.fromOffset(0,0),Size=UDim2.fromOffset(PW,168),BackgroundTransparency=1,ZIndex=101,Parent=panel})
     pad(inner,10,10,10,10)
 
