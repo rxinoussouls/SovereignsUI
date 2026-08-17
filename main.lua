@@ -9,7 +9,7 @@ local TextService      = game:GetService("TextService")
 local HttpService      = game:GetService("HttpService")
 local Workspace        = game:GetService("Workspace")
 
-local DEFAULT_LOGO = "rbxassetid://71546395739979"
+local DEFAULT_LOGO = "rbxassetid://114345069590059"
 local TWEEN = TweenInfo.new(0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
 local NOTIFICATION_TWEEN = TweenInfo.new(0.18, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
 local PROFILE_TWEEN = TweenInfo.new(0.32, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
@@ -1268,7 +1268,7 @@ local Library = {
     Icons         = ICONS,
     DefaultLogo   = DEFAULT_LOGO,
     Flags         = {},        -- [flag] = { kind = <string>, api = <handle> }
-    ConfigFolder  = "Sovereigns/configs",
+    ConfigFolder  = "Sovereigns/configs/" .. tostring((function() local ok,id = pcall(function() return game.PlaceId end); return (ok and id) or "unknown" end)()),
     _windows      = {},
     _windowObjects= {},
     _currentTheme = "Dark",
@@ -1432,7 +1432,10 @@ local function configPath(name)
     return Library.ConfigFolder .. "/" .. name .. ".json"
 end
 
--- Persist the current state of all flags to a named config file.
+-- Persist the current state of all flags to a named config file. Wrapped
+-- with metadata (library version + save time) so future versions can
+-- detect and migrate older config files instead of silently misreading
+-- them; old flat-format files are still readable by LoadConfig below.
 function Library:SaveConfig(name)
     if not hasFileApi() then
         warn("[Sovereigns] SaveConfig requires an executor file API (writefile)")
@@ -1440,15 +1443,23 @@ function Library:SaveConfig(name)
     end
     ensureConfigFolder()
     local ok, encoded = pcall(function()
-        return HttpService:JSONEncode(Library:GetConfig())
+        return HttpService:JSONEncode({
+            __sovereigns_config__ = true,
+            version = Library.Version,
+            savedAt = os.time(),
+            data = Library:GetConfig(),
+        })
     end)
     if not ok then warn("[Sovereigns] SaveConfig failed to encode config"); return false end
     local wrote = pcall(writefile, configPath(name), encoded)
     if not wrote then warn("[Sovereigns] SaveConfig failed to write file"); return false end
+    pcall(writefile, Library.ConfigFolder .. "/_last.txt", tostring(name))
     return true
 end
 
--- Load a named config file and apply it to all matching flags.
+-- Load a named config file and apply it to all matching flags. Accepts
+-- both the new metadata-wrapped format and old flat-format files saved by
+-- earlier versions of the library.
 function Library:LoadConfig(name)
     if not hasFileApi() then
         warn("[Sovereigns] LoadConfig requires an executor file API (readfile)")
@@ -1460,7 +1471,28 @@ function Library:LoadConfig(name)
     if not ok or not raw then return false end
     local decoded, data = pcall(function() return HttpService:JSONDecode(raw) end)
     if not decoded then warn("[Sovereigns] LoadConfig failed to decode config"); return false end
-    return Library:LoadConfigData(data)
+    if type(data) == "table" and data.__sovereigns_config__ then data = data.data end
+    local applied = Library:LoadConfigData(data)
+    if applied then pcall(writefile, Library.ConfigFolder .. "/_last.txt", tostring(name)) end
+    return applied
+end
+
+-- Name of the most recently saved/loaded config, if any. Lets a game
+-- restore the player's last-used settings on the next launch via
+-- Library:LoadLastConfig() without the caller needing to track it.
+function Library:GetLastConfig()
+    if type(readfile) ~= "function" then return nil end
+    local path = Library.ConfigFolder .. "/_last.txt"
+    if type(isfile) == "function" and not isfile(path) then return nil end
+    local ok, raw = pcall(readfile, path)
+    if ok and type(raw) == "string" and raw ~= "" then return raw end
+    return nil
+end
+
+function Library:LoadLastConfig()
+    local name = Library:GetLastConfig()
+    if not name then return false end
+    return Library:LoadConfig(name)
 end
 
 -- List saved config names (without extension).
@@ -2090,6 +2122,9 @@ function Library:CreateWindow(opts)
     -- natively, so this stacks a few oversized, low-opacity, rounded layers
     -- to approximate one — the window reads as floating above the game
     -- instead of sitting flat on top of it.
+    -- Tracked in `shadowFrames` so setMinimized()/setUIVisible() can hide
+    -- these along with the window instead of leaving them stranded on screen.
+    local shadowFrames = {}
     local shadowCenterX = windowSize.X.Offset / 2
     local shadowCenterY = windowSize.Y.Offset / 2
     for i, layer in ipairs({
@@ -2108,6 +2143,7 @@ function Library:CreateWindow(opts)
             Parent = container,
         })
         corner(shadow, 12 + layer.grow / 3)
+        table.insert(shadowFrames, shadow)
     end
 
     local main = make("Frame", {
@@ -2230,6 +2266,7 @@ function Library:CreateWindow(opts)
         if burgerButton and burgerButton.Parent then burgerButton.Visible = minimized end
         main.Visible = not minimized
         hotbar.Visible = not minimized
+        for _, s in ipairs(shadowFrames) do if s and s.Parent then s.Visible = not minimized end end
         if windowRef then windowRef._minimized = minimized end
     end
 
@@ -3054,7 +3091,7 @@ function Library:CreateWindow(opts)
         _profileOpen=profileOpen, _setProfileVisible=setProfileVisible,
         _connections={}, _noDrag=noDrag, _tabs={}, _activeTab=nil,
         _containerScale=containerScale, _uiVisible=true, _toggleKey=toggleKey,
-        _destroyed=false,
+        _loadingBlur=loadingBlur, _destroyed=false,
     }, Window)
     windowRef.Notify=function(s,m) return Window.Notify(windowRef,s==windowRef and m or s) end
     windowRef.Notification=windowRef.Notify
@@ -3259,41 +3296,42 @@ function Window:Notify(opts)
     self._notificationOrder=self._notificationOrder+1
     local title=tostring(opts.Title or style.Name)
     local body =tostring(opts.Content or opts.Description or opts.Message or "Notification")
-    local slot=make("Frame",{Name="NotificationSlot",Size=UDim2.new(1,0,0,62),BackgroundTransparency=1,LayoutOrder=self._notificationOrder,ZIndex=200,Parent=holder})
-    local card=make("CanvasGroup",{Name=style.Name.."Notification",AnchorPoint=Vector2.new(1,0),Position=UDim2.new(1,12,0,0),Size=UDim2.fromScale(1,1),BackgroundColor3=C.White,GroupTransparency=1,ClipsDescendants=true,ZIndex=201,Parent=slot})
-    corner(card,12);stroke(card,C.Border)
-    -- Same look as the brand card: muted blue-to-gray fade (blue at the
-    -- bottom) plus the diagonal blue-white shimmer sweep. The frame must be
-    -- white because a UIGradient multiplies instead of replacing.
-    card:SetAttribute("Theme_BackgroundColor3", nil)
-    local cardGrad=make("UIGradient",{Rotation=90,Parent=card})
-    cardGrad:SetAttribute("ThemeGradient_Top","CardBg")
-    cardGrad:SetAttribute("ThemeGradient_Bottom","Accent")
-    cardGrad:SetAttribute("ThemeGradient_Strength",0.5)
-    refreshVerticalFade(cardGrad)
-    local shimmer=make("Frame",{Name="Shimmer",Size=UDim2.fromScale(1,1),ZIndex=0,BackgroundColor3=Color3.fromRGB(210,225,255),Parent=card})
-    corner(shimmer,6)
+    local slot=make("Frame",{Name="NotificationSlot",Size=UDim2.new(1,0,0,64),BackgroundTransparency=1,LayoutOrder=self._notificationOrder,ZIndex=200,Parent=holder})
+    -- Clean, theme-synced card: flat CardBg (so it always matches whatever
+    -- theme is active) with the notification's own severity colour used
+    -- only as a glowing edge + a very light corner wash — not blended
+    -- across the whole background like before, which used to fight with
+    -- non-blue themes (Gold, Rose, MonokaiPro, etc).
+    local card=make("CanvasGroup",{Name=style.Name.."Notification",AnchorPoint=Vector2.new(1,0),Position=UDim2.new(1,12,0,0),Size=UDim2.fromScale(1,1),BackgroundColor3=C.CardBg,GroupTransparency=1,ClipsDescendants=true,ZIndex=201,Parent=slot})
+    corner(card,12)
+    local cardGlow=make("UIStroke",{Color=style.Color,Thickness=1.2,Transparency=0.35,ApplyStrokeMode=Enum.ApplyStrokeMode.Border,Parent=card})
+    local wash=make("Frame",{Name="Wash",AnchorPoint=Vector2.new(1,0),Position=UDim2.fromScale(1,0),Size=UDim2.fromOffset(90,64),BackgroundColor3=style.Color,BackgroundTransparency=0.9,ZIndex=201,Parent=card})
+    corner(wash,12)
+    make("UIGradient",{Rotation=90,Transparency=NumberSequence.new({
+        NumberSequenceKeypoint.new(0.0,0.0),
+        NumberSequenceKeypoint.new(1.0,1.0),
+    }),Parent=wash})
+    -- A slow shimmer sweep in the severity colour, same traveling-light
+    -- technique used on the main window border and active hotbar tab.
+    local shimmer=make("Frame",{Name="Shimmer",Size=UDim2.fromScale(1,1),ZIndex=201,BackgroundTransparency=1,Parent=card})
     local shimmerGrad=make("UIGradient",{
         Rotation=45,
         Color=ColorSequence.new({
-            ColorSequenceKeypoint.new(0.00, C.Accent),
-            ColorSequenceKeypoint.new(0.42, C.Accent),
+            ColorSequenceKeypoint.new(0.00, style.Color),
+            ColorSequenceKeypoint.new(0.42, style.Color),
             ColorSequenceKeypoint.new(0.50, Color3.fromRGB(255, 255, 255)),
-            ColorSequenceKeypoint.new(0.58, C.Accent),
-            ColorSequenceKeypoint.new(1.00, C.Accent),
+            ColorSequenceKeypoint.new(0.58, style.Color),
+            ColorSequenceKeypoint.new(1.00, style.Color),
         }),
         Transparency=NumberSequence.new({
             NumberSequenceKeypoint.new(0.00, 1.0),
             NumberSequenceKeypoint.new(0.38, 1.0),
-            NumberSequenceKeypoint.new(0.50, 0.55),
+            NumberSequenceKeypoint.new(0.50, 0.82),
             NumberSequenceKeypoint.new(0.62, 1.0),
             NumberSequenceKeypoint.new(1.00, 1.0),
         }),
-        Parent=shimmer,
+        Parent=cardGlow,
     })
-    shimmerGrad:SetAttribute("ThemeGradient_Edge","Accent")
-    -- Each notification drives its own shimmer sweep (same cycle as the
-    -- window glow), disconnecting when the card is dismissed.
     local nGlowT=0
     local shimmerConn=RunService.RenderStepped:Connect(function(dt)
         if not card or not card.Parent then if shimmerConn then shimmerConn:Disconnect() end return end
@@ -3301,15 +3339,22 @@ function Window:Notify(opts)
         shimmerGrad.Offset=Vector2.new(nGlowT*2-1,0)
     end)
     -- Style accent: short colored bar on the left edge
-    local accentBar=make("Frame",{Position=UDim2.fromOffset(0,10),Size=UDim2.fromOffset(3,42),BackgroundColor3=style.Color,ZIndex=202,Parent=card})
+    local accentBar=make("Frame",{Position=UDim2.fromOffset(0,11),Size=UDim2.fromOffset(3,44),BackgroundColor3=style.Color,ZIndex=202,Parent=card})
     corner(accentBar,2)
     -- Style icon chip
-    local iconHolder=make("Frame",{Position=UDim2.fromOffset(14,17),Size=UDim2.fromOffset(28,28),BackgroundColor3=style.Color,BackgroundTransparency=0.88,ZIndex=202,Parent=card})
-    corner(iconHolder,8)
+    local iconHolder=make("Frame",{Position=UDim2.fromOffset(15,18),Size=UDim2.fromOffset(28,28),BackgroundColor3=style.Color,BackgroundTransparency=0.85,ZIndex=202,Parent=card})
+    corner(iconHolder,9)
     make("ImageLabel",{Image=style.Icon or ICONS.alert,ImageColor3=style.Color,BackgroundTransparency=1,AnchorPoint=Vector2.new(0.5,0.5),Position=UDim2.fromScale(0.5,0.5),Size=UDim2.fromOffset(15,15),ScaleType=Enum.ScaleType.Fit,ZIndex=203,Parent=iconHolder})
-    make("TextLabel",{Text=title,Font=Enum.Font.GothamBold,TextSize=12,TextColor3=style.Color,TextXAlignment=Enum.TextXAlignment.Left,TextTruncate=Enum.TextTruncate.AtEnd,BackgroundTransparency=1,Position=UDim2.fromOffset(52,8),Size=UDim2.new(1,-84,0,16),ZIndex=202,Parent=card})
-    make("TextLabel",{Text=body,Font=Enum.Font.Gotham,TextSize=11,TextColor3=C.TextGray,TextXAlignment=Enum.TextXAlignment.Left,TextYAlignment=Enum.TextYAlignment.Top,TextWrapped=true,BackgroundTransparency=1,Position=UDim2.fromOffset(52,27),Size=UDim2.new(1,-64,0,26),ZIndex=202,Parent=card})
-    local xb=make("TextButton",{Text="×",Font=Enum.Font.Gotham,TextSize=14,TextColor3=C.TextDim,AnchorPoint=Vector2.new(1,0),Position=UDim2.new(1,-7,0,5),Size=UDim2.fromOffset(20,20),BackgroundTransparency=1,ZIndex=204,Parent=card})
+    make("TextLabel",{Text=title,Font=Enum.Font.GothamBold,TextSize=12,TextColor3=C.White,TextXAlignment=Enum.TextXAlignment.Left,TextTruncate=Enum.TextTruncate.AtEnd,BackgroundTransparency=1,Position=UDim2.fromOffset(53,9),Size=UDim2.new(1,-85,0,16),ZIndex=202,Parent=card})
+    make("TextLabel",{Text=body,Font=Enum.Font.Gotham,TextSize=11,TextColor3=C.TextGray,TextXAlignment=Enum.TextXAlignment.Left,TextYAlignment=Enum.TextYAlignment.Top,TextWrapped=true,BackgroundTransparency=1,Position=UDim2.fromOffset(53,28),Size=UDim2.new(1,-66,0,28),ZIndex=202,Parent=card})
+    local xb=make("TextButton",{Text="×",Font=Enum.Font.GothamBold,TextSize=15,TextColor3=C.TextDim,AnchorPoint=Vector2.new(1,0),Position=UDim2.new(1,-8,0,6),Size=UDim2.fromOffset(20,20),BackgroundTransparency=1,ZIndex=204,Parent=card})
+    -- Progress rail along the bottom edge, drains over the notification's
+    -- lifetime so the person can see how long they have before it closes.
+    local rail
+    if dur>0 then
+        local railTrack=make("Frame",{AnchorPoint=Vector2.new(0,1),Position=UDim2.fromScale(0,1),Size=UDim2.new(1,0,0,2),BackgroundColor3=C.Border,ZIndex=202,Parent=card})
+        rail=make("Frame",{Size=UDim2.fromScale(1,1),BackgroundColor3=style.Color,ZIndex=203,Parent=railTrack})
+    end
     local closed=false; local handle={}
     local function close(reason)
         if closed then return end; closed=true
@@ -3323,14 +3368,25 @@ function Window:Notify(opts)
     xb.MouseLeave:Connect(function() tween(xb,{TextColor3=C.TextDim}) end)
     xb.MouseButton1Click:Connect(function() close("manual") end)
     TweenService:Create(card,NOTIFICATION_TWEEN,{Position=UDim2.new(1,0,0,0),GroupTransparency=0}):Play()
-    if dur>0 then task.delay(dur,function() close("timeout") end) end; return handle
+    if dur>0 then
+        if rail then TweenService:Create(rail,TweenInfo.new(dur,Enum.EasingStyle.Linear),{Size=UDim2.fromScale(0,1)}):Play() end
+        task.delay(dur,function() close("timeout") end)
+    end
+    return handle
 end
 
 function Window:Destroy()
+    if self._destroyed then return end
     self._destroyed = true
-    for _,c in ipairs(self._connections or {}) do c:Disconnect() end
+    -- Stop every tracked connection first (music sound, input listeners,
+    -- drag handlers, admin/tag listeners, viewport-resize hooks, etc.) so
+    -- nothing keeps running in the background once the GUI is gone.
+    for _,c in ipairs(self._connections or {}) do pcall(function() c:Disconnect() end) end
     table.clear(self._connections or {})
     if self._fpsEditableImage then pcall(function() self._fpsEditableImage:Destroy() end); self._fpsEditableImage=nil end
+    -- Safety net: if the window is destroyed mid-loading-animation, the
+    -- Lighting blur it applied wouldn't otherwise get cleaned up.
+    if self._loadingBlur then pcall(function() self._loadingBlur:Destroy() end); self._loadingBlur=nil end
     local i=table.find(Library._windows,self.ScreenGui); if i then table.remove(Library._windows,i) end
     local j=table.find(Library._windowObjects,self);     if j then table.remove(Library._windowObjects,j) end
     if self.ScreenGui then self.ScreenGui:Destroy() end
@@ -3347,6 +3403,7 @@ function Window:_selectTab(tab)
         tween(prev._hBtn,{BackgroundColor3=C.HotbarBg})
         tween(prev._hLabel,{TextColor3=C.TextGray})
         if prev._hDot then tween(prev._hDot,{BackgroundTransparency=1}) end
+        if prev._hGlowStroke then tween(prev._hGlowStroke,{Transparency=1}) end
         if prev._hIconElement then
             if prev._hIconElement:IsA("ImageLabel") then tween(prev._hIconElement,{ImageColor3=C.TextGray})
             elseif prev._hIconElement:IsA("TextLabel") then tween(prev._hIconElement,{TextColor3=C.TextGray}) end
@@ -3356,6 +3413,10 @@ function Window:_selectTab(tab)
     tween(tab._hBtn,{BackgroundColor3=C.HotbarActive})
     tween(tab._hLabel,{TextColor3=C.White})
     if tab._hDot then tween(tab._hDot,{BackgroundTransparency=0}) end
+    if tab._hGlowStroke then tween(tab._hGlowStroke,{Transparency=0.25}) end
+    if tab._hScale then
+        TweenService:Create(tab._hScale,TweenInfo.new(0.22,Enum.EasingStyle.Back,Enum.EasingDirection.Out),{Scale=1.0}):Play()
+    end
     if tab._hIconElement then
         if tab._hIconElement:IsA("ImageLabel") then tween(tab._hIconElement,{ImageColor3=C.White})
         elseif tab._hIconElement:IsA("TextLabel") then tween(tab._hIconElement,{TextColor3=C.White}) end
@@ -3385,6 +3446,30 @@ function Window:AddTab(opts)
     hBtn.LayoutOrder=#self._hotbarInner:GetChildren()
     corner(hBtn,7); pad(hBtn,0,0,12,12)
     table.insert(win._noDrag,hBtn)
+    local hBtnScale=make("UIScale",{Scale=1,Parent=hBtn})
+    -- Traveling-light border, same technique as the main window's outline,
+    -- shown only while this tab is the active one.
+    local hGlowStroke=make("UIStroke",{Color=C.Accent,Thickness=1.3,Transparency=1,ApplyStrokeMode=Enum.ApplyStrokeMode.Border,Parent=hBtn})
+    local hGlowGradient=make("UIGradient",{Color=ColorSequence.new({
+        ColorSequenceKeypoint.new(0.00, C.Accent),
+        ColorSequenceKeypoint.new(0.42, C.Accent),
+        ColorSequenceKeypoint.new(0.50, Color3.fromRGB(255,255,255)),
+        ColorSequenceKeypoint.new(0.58, C.Accent),
+        ColorSequenceKeypoint.new(1.00, C.Accent),
+    }),Transparency=NumberSequence.new({
+        NumberSequenceKeypoint.new(0.00, 1.0),
+        NumberSequenceKeypoint.new(0.36, 1.0),
+        NumberSequenceKeypoint.new(0.50, 0.0),
+        NumberSequenceKeypoint.new(0.64, 1.0),
+        NumberSequenceKeypoint.new(1.00, 1.0),
+    }),Parent=hGlowStroke})
+    hGlowGradient:SetAttribute("ThemeGradient_Edge","Accent")
+    local hGlowConn
+    hGlowConn=RunService.RenderStepped:Connect(function()
+        if not hBtn or not hBtn.Parent then if hGlowConn then hGlowConn:Disconnect() end return end
+        local t=(os.clock()*0.35)%1
+        hGlowGradient.Offset=Vector2.new(t*2-1,0)
+    end)
 
     local hRow=make("Frame",{BackgroundTransparency=1,AutomaticSize=Enum.AutomaticSize.X,Size=UDim2.new(0,0,1,0),ZIndex=5,Parent=hBtn})
     make("UIListLayout",{FillDirection=Enum.FillDirection.Horizontal,VerticalAlignment=Enum.VerticalAlignment.Center,SortOrder=Enum.SortOrder.LayoutOrder,Padding=UDim.new(0,6),Parent=hRow})
@@ -3430,7 +3515,7 @@ function Window:AddTab(opts)
 
     local tab=setmetatable({
         _window=win,
-        _hBtn=hBtn,_hLabel=hLabel,_hDot=hDot,_hIconElement=hIconElement,
+        _hBtn=hBtn,_hLabel=hLabel,_hDot=hDot,_hIconElement=hIconElement,_hGlowStroke=hGlowStroke,_hScale=hBtnScale,
         _page=page,_pillBar=pillBar,_pillScroll=pillScroll,_pillRow=pillRow,
         _pillScrollLeft=pillScrollLeft,_pillScrollRight=pillScrollRight,
         _pagesHolder=pagesHolder,
@@ -3441,9 +3526,17 @@ function Window:AddTab(opts)
     hBtn.MouseButton1Click:Connect(function() win:_selectTab(tab) end)
     hBtn.MouseEnter:Connect(function()
         if win._activeTab~=tab then tween(hBtn,{BackgroundColor3=C.HotbarHover}) end
+        TweenService:Create(hBtnScale,TWEEN,{Scale=1.04}):Play()
     end)
     hBtn.MouseLeave:Connect(function()
         tween(hBtn,{BackgroundColor3=win._activeTab==tab and C.HotbarActive or C.HotbarBg})
+        TweenService:Create(hBtnScale,TWEEN,{Scale=1}):Play()
+    end)
+    hBtn.MouseButton1Down:Connect(function()
+        TweenService:Create(hBtnScale,TweenInfo.new(0.08,Enum.EasingStyle.Quad,Enum.EasingDirection.Out),{Scale=0.94}):Play()
+    end)
+    hBtn.MouseButton1Up:Connect(function()
+        TweenService:Create(hBtnScale,TWEEN,{Scale=1.04}):Play()
     end)
 
     table.insert(self._tabs,tab)
