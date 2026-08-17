@@ -9,8 +9,8 @@ local TextService      = game:GetService("TextService")
 local HttpService      = game:GetService("HttpService")
 local Workspace        = game:GetService("Workspace")
 
-local DEFAULT_LOGO = "rbxassetid://114345069590059"
-local TWEEN = TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+local DEFAULT_LOGO = "rbxassetid://71546395739979"
+local TWEEN = TweenInfo.new(0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
 local NOTIFICATION_TWEEN = TweenInfo.new(0.18, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
 local PROFILE_TWEEN = TweenInfo.new(0.32, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
 
@@ -214,6 +214,209 @@ local THEMES = {
         AccentDim    = Color3.fromRGB(16, 32, 56),
         AccentText   = Color3.fromRGB(5, 9, 16),
         KnobAccent   = Color3.fromRGB(8, 12, 20),
+    },
+    -- Deep emerald green, premium and calm. Good fit for finance-style panels.
+    Emerald = {
+        WindowBg     = Color3.fromRGB(14, 18, 16),
+        CardBg       = Color3.fromRGB(18, 22, 20),
+        Border       = Color3.fromRGB(30, 38, 34),
+        Element      = Color3.fromRGB(24, 30, 27),
+        ElementHover = Color3.fromRGB(30, 38, 34),
+        Badge        = Color3.fromRGB(36, 44, 40),
+        BadgeIdle    = Color3.fromRGB(22, 28, 25),
+        NavActive    = Color3.fromRGB(16, 20, 18),
+        NavHover     = Color3.fromRGB(12, 16, 14),
+        PillActive   = Color3.fromRGB(28, 36, 32),
+        White        = Color3.fromRGB(255, 255, 255),
+        TextGray     = Color3.fromRGB(150, 165, 158),
+        TextDim      = Color3.fromRGB(120, 135, 128),
+        KnobOff      = Color3.fromRGB(80, 95, 88),
+        KnobOn       = Color3.fromRGB(10, 16, 14),
+        TrackBg      = Color3.fromRGB(36, 46, 42),
+        Placeholder  = Color3.fromRGB(85, 100, 93),
+        HotbarBg     = Color3.fromRGB(18, 22, 20),
+        HotbarBorder = Color3.fromRGB(30, 38, 34),
+        HotbarActive = Color3.fromRGB(24, 30, 27),
+        HotbarHover  = Color3.fromRGB(30, 38, 34),
+        HotbarDot    = Color3.fromRGB(210, 225, 218),
+        Accent       = Color3.fromRGB(52, 199, 143),
+        AccentDim    = Color3.fromRGB(16, 46, 36),
+        AccentText   = Color3.fromRGB(6, 20, 16),
+        KnobAccent   = Color3.fromRGB(10, 28, 22),
+    },
+    -- Fresh natural green, brighter and warmer than Emerald.
+    Plant = {
+        WindowBg     = Color3.fromRGB(16, 20, 15),
+        CardBg       = Color3.fromRGB(20, 25, 18),
+        Border       = Color3.fromRGB(34, 42, 30),
+        Element      = Color3.fromRGB(26, 32, 23),
+        ElementHover = Color3.fromRGB(33, 40, 29),
+        Badge        = Color3.fromRGB(40, 48, 35),
+        BadgeIdle    = Color3.fromRGB(24, 30, 21),
+        NavActive    = Color3.fromRGB(18, 22, 16),
+        NavHover     = Color3.fromRGB(14, 18, 13),
+        PillActive   = Color3.fromRGB(30, 38, 27),
+        White        = Color3.fromRGB(255, 255, 255),
+        TextGray     = Color3.fromRGB(160, 172, 150),
+        TextDim      = Color3.fromRGB(128, 140, 118),
+        KnobOff      = Color3.fromRGB(85, 98, 78),
+        KnobOn       = Color3.fromRGB(10, 14, 9),
+        TrackBg      = Color3.fromRGB(38, 48, 34),
+        Placeholder  = Color3.fromRGB(90, 102, 80),
+        HotbarBg     = Color3.fromRGB(20, 25, 18),
+        HotbarBorder = Color3.fromRGB(34, 42, 30),
+        HotbarActive = Color3.fromRGB(26, 32, 23),
+        HotbarHover  = Color3.fromRGB(33, 40, 29),
+        HotbarDot    = Color3.fromRGB(215, 228, 205),
+        Accent       = Color3.fromRGB(120, 209, 120),
+        AccentDim    = Color3.fromRGB(24, 52, 26),
+        AccentText   = Color3.fromRGB(8, 20, 10),
+        KnobAccent   = Color3.fromRGB(14, 30, 16),
+    },
+    -- Coding-inspired dark olive-grey base with a warm orange highlight.
+    MonokaiPro = {
+        WindowBg     = Color3.fromRGB(24, 26, 22),
+        CardBg       = Color3.fromRGB(30, 32, 27),
+        Border       = Color3.fromRGB(46, 48, 40),
+        Element      = Color3.fromRGB(36, 38, 32),
+        ElementHover = Color3.fromRGB(44, 46, 38),
+        Badge        = Color3.fromRGB(52, 54, 44),
+        BadgeIdle    = Color3.fromRGB(32, 34, 28),
+        NavActive    = Color3.fromRGB(26, 28, 23),
+        NavHover     = Color3.fromRGB(20, 22, 18),
+        PillActive   = Color3.fromRGB(40, 42, 35),
+        White        = Color3.fromRGB(255, 255, 255),
+        TextGray     = Color3.fromRGB(170, 168, 150),
+        TextDim      = Color3.fromRGB(135, 133, 118),
+        KnobOff      = Color3.fromRGB(95, 92, 80),
+        KnobOn       = Color3.fromRGB(14, 15, 12),
+        TrackBg      = Color3.fromRGB(48, 50, 42),
+        Placeholder  = Color3.fromRGB(100, 98, 85),
+        HotbarBg     = Color3.fromRGB(30, 32, 27),
+        HotbarBorder = Color3.fromRGB(46, 48, 40),
+        HotbarActive = Color3.fromRGB(36, 38, 32),
+        HotbarHover  = Color3.fromRGB(44, 46, 38),
+        HotbarDot    = Color3.fromRGB(255, 216, 102),
+        Accent       = Color3.fromRGB(252, 151, 105),
+        AccentDim    = Color3.fromRGB(58, 34, 20),
+        AccentText   = Color3.fromRGB(10, 6, 3),
+        KnobAccent   = Color3.fromRGB(24, 15, 9),
+    },
+    -- Deep midnight navy/indigo. Professional and moody.
+    Midnight = {
+        WindowBg     = Color3.fromRGB(10, 14, 26),
+        CardBg       = Color3.fromRGB(14, 18, 32),
+        Border       = Color3.fromRGB(26, 32, 50),
+        Element      = Color3.fromRGB(18, 24, 40),
+        ElementHover = Color3.fromRGB(24, 30, 48),
+        Badge        = Color3.fromRGB(30, 38, 56),
+        BadgeIdle    = Color3.fromRGB(18, 24, 40),
+        NavActive    = Color3.fromRGB(12, 16, 28),
+        NavHover     = Color3.fromRGB(8, 12, 22),
+        PillActive   = Color3.fromRGB(22, 28, 46),
+        White        = Color3.fromRGB(255, 255, 255),
+        TextGray     = Color3.fromRGB(150, 160, 185),
+        TextDim      = Color3.fromRGB(110, 120, 145),
+        KnobOff      = Color3.fromRGB(75, 85, 110),
+        KnobOn       = Color3.fromRGB(8, 10, 18),
+        TrackBg      = Color3.fromRGB(30, 38, 58),
+        Placeholder  = Color3.fromRGB(85, 95, 120),
+        HotbarBg     = Color3.fromRGB(14, 18, 32),
+        HotbarBorder = Color3.fromRGB(26, 32, 50),
+        HotbarActive = Color3.fromRGB(18, 24, 40),
+        HotbarHover  = Color3.fromRGB(24, 30, 48),
+        HotbarDot    = Color3.fromRGB(200, 215, 240),
+        Accent       = Color3.fromRGB(110, 150, 240),
+        AccentDim    = Color3.fromRGB(22, 30, 58),
+        AccentText   = Color3.fromRGB(6, 10, 20),
+        KnobAccent   = Color3.fromRGB(12, 18, 32),
+    },
+    -- Violet / lavender. Creative, premium, tech-forward.
+    Violet = {
+        WindowBg     = Color3.fromRGB(18, 14, 24),
+        CardBg       = Color3.fromRGB(24, 18, 32),
+        Border       = Color3.fromRGB(42, 32, 54),
+        Element      = Color3.fromRGB(32, 24, 42),
+        ElementHover = Color3.fromRGB(40, 30, 52),
+        Badge        = Color3.fromRGB(48, 36, 62),
+        BadgeIdle    = Color3.fromRGB(28, 21, 37),
+        NavActive    = Color3.fromRGB(20, 15, 27),
+        NavHover     = Color3.fromRGB(15, 11, 20),
+        PillActive   = Color3.fromRGB(38, 28, 50),
+        White        = Color3.fromRGB(255, 255, 255),
+        TextGray     = Color3.fromRGB(175, 160, 185),
+        TextDim      = Color3.fromRGB(138, 125, 148),
+        KnobOff      = Color3.fromRGB(100, 88, 112),
+        KnobOn       = Color3.fromRGB(12, 9, 16),
+        TrackBg      = Color3.fromRGB(46, 36, 58),
+        Placeholder  = Color3.fromRGB(105, 92, 118),
+        HotbarBg     = Color3.fromRGB(24, 18, 32),
+        HotbarBorder = Color3.fromRGB(42, 32, 54),
+        HotbarActive = Color3.fromRGB(32, 24, 42),
+        HotbarHover  = Color3.fromRGB(40, 30, 52),
+        HotbarDot    = Color3.fromRGB(225, 210, 240),
+        Accent       = Color3.fromRGB(176, 138, 240),
+        AccentDim    = Color3.fromRGB(38, 26, 58),
+        AccentText   = Color3.fromRGB(10, 7, 18),
+        KnobAccent   = Color3.fromRGB(20, 14, 32),
+    },
+    -- Rose gold. Warm, soft, fashion-forward.
+    Rose = {
+        WindowBg     = Color3.fromRGB(24, 16, 18),
+        CardBg       = Color3.fromRGB(30, 20, 23),
+        Border       = Color3.fromRGB(52, 34, 38),
+        Element      = Color3.fromRGB(40, 26, 29),
+        ElementHover = Color3.fromRGB(49, 32, 36),
+        Badge        = Color3.fromRGB(58, 38, 42),
+        BadgeIdle    = Color3.fromRGB(34, 22, 25),
+        NavActive    = Color3.fromRGB(24, 16, 18),
+        NavHover     = Color3.fromRGB(18, 12, 14),
+        PillActive   = Color3.fromRGB(46, 30, 34),
+        White        = Color3.fromRGB(255, 255, 255),
+        TextGray     = Color3.fromRGB(190, 165, 168),
+        TextDim      = Color3.fromRGB(150, 130, 133),
+        KnobOff      = Color3.fromRGB(110, 88, 90),
+        KnobOn       = Color3.fromRGB(16, 10, 11),
+        TrackBg      = Color3.fromRGB(56, 38, 41),
+        Placeholder  = Color3.fromRGB(115, 92, 95),
+        HotbarBg     = Color3.fromRGB(30, 20, 23),
+        HotbarBorder = Color3.fromRGB(52, 34, 38),
+        HotbarActive = Color3.fromRGB(40, 26, 29),
+        HotbarHover  = Color3.fromRGB(49, 32, 36),
+        HotbarDot    = Color3.fromRGB(240, 205, 208),
+        Accent       = Color3.fromRGB(232, 140, 158),
+        AccentDim    = Color3.fromRGB(52, 26, 32),
+        AccentText   = Color3.fromRGB(16, 7, 9),
+        KnobAccent   = Color3.fromRGB(28, 14, 17),
+    },
+    -- Gold / Luxury. Warm near-black base with a metallic gold accent.
+    Gold = {
+        WindowBg     = Color3.fromRGB(20, 17, 10),
+        CardBg       = Color3.fromRGB(26, 22, 13),
+        Border       = Color3.fromRGB(48, 40, 22),
+        Element      = Color3.fromRGB(36, 30, 17),
+        ElementHover = Color3.fromRGB(44, 37, 21),
+        Badge        = Color3.fromRGB(52, 44, 25),
+        BadgeIdle    = Color3.fromRGB(30, 25, 15),
+        NavActive    = Color3.fromRGB(22, 18, 11),
+        NavHover     = Color3.fromRGB(16, 13, 8),
+        PillActive   = Color3.fromRGB(42, 35, 20),
+        White        = Color3.fromRGB(255, 255, 255),
+        TextGray     = Color3.fromRGB(200, 183, 140),
+        TextDim      = Color3.fromRGB(160, 146, 110),
+        KnobOff      = Color3.fromRGB(120, 105, 70),
+        KnobOn       = Color3.fromRGB(14, 12, 7),
+        TrackBg      = Color3.fromRGB(50, 42, 24),
+        Placeholder  = Color3.fromRGB(125, 110, 75),
+        HotbarBg     = Color3.fromRGB(26, 22, 13),
+        HotbarBorder = Color3.fromRGB(48, 40, 22),
+        HotbarActive = Color3.fromRGB(36, 30, 17),
+        HotbarHover  = Color3.fromRGB(44, 37, 21),
+        HotbarDot    = Color3.fromRGB(245, 225, 175),
+        Accent       = Color3.fromRGB(212, 175, 90),
+        AccentDim    = Color3.fromRGB(48, 38, 16),
+        AccentText   = Color3.fromRGB(16, 12, 4),
+        KnobAccent   = Color3.fromRGB(26, 20, 8),
     },
 }
 
@@ -1398,8 +1601,21 @@ local function buildMusicPlayer(cfg)
     end
 
     -- ── Panel shell (compact, matches the profile / performance panels) ─────
-    local musicPanel = make("CanvasGroup", { Name = "MusicPlayer", AnchorPoint = Vector2.new(1, 1), Position = musicClosedPos, Size = UDim2.fromOffset(musicWidth, fullHeight), BackgroundColor3 = C.CardBg, GroupTransparency = 1, ClipsDescendants = true, ZIndex = 150, Parent = screenGui })
+    -- Glass-style panel: translucent background + soft diagonal sheen + a
+    -- glowing accent border, so it reads like a modern acrylic flyout.
+    local musicPanel = make("CanvasGroup", { Name = "MusicPlayer", AnchorPoint = Vector2.new(1, 1), Position = musicClosedPos, Size = UDim2.fromOffset(musicWidth, fullHeight), BackgroundColor3 = C.CardBg, BackgroundTransparency = 0.1, GroupTransparency = 1, ClipsDescendants = true, ZIndex = 150, Parent = screenGui })
     corner(musicPanel, 14)
+    local musicPanelGlow = stroke(musicPanel, C.Accent); musicPanelGlow.Transparency = 0.7; musicPanelGlow.Thickness = 1
+    local musicSheen = make("Frame", { Name = "Sheen", Size = UDim2.fromScale(1, 1), BackgroundColor3 = Color3.fromRGB(255, 255, 255), ZIndex = 150, Parent = musicPanel })
+    make("UIGradient", { Rotation = 110, Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0.00, Color3.fromRGB(255, 255, 255)),
+        ColorSequenceKeypoint.new(0.45, Color3.fromRGB(255, 255, 255)),
+        ColorSequenceKeypoint.new(1.00, Color3.fromRGB(255, 255, 255)),
+    }), Transparency = NumberSequence.new({
+        NumberSequenceKeypoint.new(0.00, 0.90),
+        NumberSequenceKeypoint.new(0.45, 0.97),
+        NumberSequenceKeypoint.new(1.00, 1.00),
+    }), Parent = musicSheen })
 
     -- Header
     make("TextLabel", { Text = "MUSIC PLAYER", Font = Enum.Font.GothamBold, TextSize = 13, TextColor3 = C.White, TextXAlignment = Enum.TextXAlignment.Left, BackgroundTransparency = 1, Position = UDim2.fromOffset(16, 12), Size = UDim2.new(1, -70, 0, 18), ZIndex = 152, Parent = musicPanel })
@@ -1870,6 +2086,30 @@ function Library:CreateWindow(opts)
     end
 
     -- ── MAIN WINDOW ───────────────────────────────────────────────────────
+    -- Soft layered drop shadow behind the window. Roblox Frames can't blur
+    -- natively, so this stacks a few oversized, low-opacity, rounded layers
+    -- to approximate one — the window reads as floating above the game
+    -- instead of sitting flat on top of it.
+    local shadowCenterX = windowSize.X.Offset / 2
+    local shadowCenterY = windowSize.Y.Offset / 2
+    for i, layer in ipairs({
+        { grow = 30, alpha = 0.92 },
+        { grow = 18, alpha = 0.84 },
+        { grow = 8,  alpha = 0.70 },
+    }) do
+        local shadow = make("Frame", {
+            Name = "Shadow" .. i,
+            AnchorPoint = Vector2.new(0.5, 0.5),
+            Position = UDim2.fromOffset(shadowCenterX, shadowCenterY + 5),
+            Size = UDim2.fromOffset(windowSize.X.Offset + layer.grow, windowSize.Y.Offset + layer.grow),
+            BackgroundColor3 = Color3.fromRGB(0, 0, 0),
+            BackgroundTransparency = layer.alpha,
+            ZIndex = 1,
+            Parent = container,
+        })
+        corner(shadow, 12 + layer.grow / 3)
+    end
+
     local main = make("Frame", {
         Name = "Main", Size = windowSize,
         Position = UDim2.fromOffset(0, 0),
@@ -1877,6 +2117,21 @@ function Library:CreateWindow(opts)
         Visible = not loadingEnabled, ZIndex = 2, Parent = container,
     })
     corner(main, 12); stroke(main, C.Border)
+
+    -- Subtle top-to-bottom depth gradient. Kept as a translucent overlay
+    -- (rather than recoloring `main` itself) so anything elsewhere that
+    -- still assumes a flat WindowBg colour keeps matching it exactly.
+    local mainDepth = make("Frame", {
+        Name = "DepthGradient", Size = UDim2.fromScale(1, 1),
+        BackgroundColor3 = Color3.fromRGB(255, 255, 255), BackgroundTransparency = 0.94,
+        Parent = main,
+    })
+    corner(mainDepth, 12)
+    local mainDepthGrad = make("UIGradient", { Rotation = 90, Parent = mainDepth })
+    mainDepthGrad:SetAttribute("ThemeGradient_Top", "CardBg")
+    mainDepthGrad:SetAttribute("ThemeGradient_Bottom", "WindowBg")
+    mainDepthGrad:SetAttribute("ThemeGradient_Strength", 1)
+    refreshVerticalFade(mainDepthGrad)
 
     -- Animated traveling outline
     local mainGlowStroke = make("UIStroke", {
@@ -2076,10 +2331,23 @@ function Library:CreateWindow(opts)
     make("TextLabel",{Text=opts.Name or "Sovereigns",Font=Enum.Font.GothamBold,TextSize=13,TextColor3=C.White,TextXAlignment=Enum.TextXAlignment.Left,TextTruncate=Enum.TextTruncate.AtEnd,BackgroundTransparency=1,Position=UDim2.fromOffset(64,16),Size=UDim2.new(1,-72,0,17),Parent=brand})
     make("TextLabel",{Text=opts.BrandSubtitle or ("Sovereigns v"..Library.Version),Font=Enum.Font.GothamMedium,TextSize=9,TextColor3=C.TextDim,TextXAlignment=Enum.TextXAlignment.Left,TextTruncate=Enum.TextTruncate.AtEnd,BackgroundTransparency=1,Position=UDim2.fromOffset(64,35),Size=UDim2.new(1,-72,0,13),Parent=brand})
 
-    -- Player mini-card (fills the sidebar and gives identity at a glance)
+    -- Player mini-card (fills the sidebar and gives identity at a glance).
+    -- Light "glass" treatment: a translucent background plus a soft diagonal
+    -- sheen and a glowing accent border, instead of a flat opaque card.
     local lp = Players.LocalPlayer
-    local pcard = make("Frame",{Name="PlayerCard",Position=UDim2.fromOffset(12,88),Size=UDim2.new(1,-24,0,52),BackgroundColor3=C.CardBg,Parent=sidebar})
-    corner(pcard,10); stroke(pcard,C.Border)
+    local pcard = make("Frame",{Name="PlayerCard",Position=UDim2.fromOffset(12,88),Size=UDim2.new(1,-24,0,52),BackgroundColor3=C.CardBg,BackgroundTransparency=0.12,Parent=sidebar})
+    corner(pcard,10)
+    local pcardGlow = stroke(pcard,C.Accent); pcardGlow.Transparency=0.72; pcardGlow.Thickness=1
+    local pcardSheen = make("Frame",{Size=UDim2.fromScale(1,1),BackgroundColor3=Color3.fromRGB(255,255,255),ZIndex=0,Parent=pcard}); corner(pcardSheen,10)
+    make("UIGradient",{Rotation=115,Color=ColorSequence.new({
+        ColorSequenceKeypoint.new(0.00, Color3.fromRGB(255,255,255)),
+        ColorSequenceKeypoint.new(0.45, Color3.fromRGB(255,255,255)),
+        ColorSequenceKeypoint.new(1.00, Color3.fromRGB(255,255,255)),
+    }),Transparency=NumberSequence.new({
+        NumberSequenceKeypoint.new(0.00, 0.90),
+        NumberSequenceKeypoint.new(0.45, 0.97),
+        NumberSequenceKeypoint.new(1.00, 1.00),
+    }),Parent=pcardSheen})
     local avH = make("Frame",{Position=UDim2.fromOffset(8,8),Size=UDim2.fromOffset(36,36),BackgroundColor3=C.Element,Parent=pcard}); corner(avH,8)
     local avImg = make("ImageLabel",{Image="rbxthumb://type=AvatarHeadShot&id="..lp.UserId.."&w=150&h=150",BackgroundTransparency=1,Size=UDim2.fromScale(1,1),ScaleType=Enum.ScaleType.Crop,Parent=avH}); corner(avImg,8)
     local avRing = stroke(avH,C.Accent); avRing.Transparency=0.4
@@ -2993,7 +3261,7 @@ function Window:Notify(opts)
     local body =tostring(opts.Content or opts.Description or opts.Message or "Notification")
     local slot=make("Frame",{Name="NotificationSlot",Size=UDim2.new(1,0,0,62),BackgroundTransparency=1,LayoutOrder=self._notificationOrder,ZIndex=200,Parent=holder})
     local card=make("CanvasGroup",{Name=style.Name.."Notification",AnchorPoint=Vector2.new(1,0),Position=UDim2.new(1,12,0,0),Size=UDim2.fromScale(1,1),BackgroundColor3=C.White,GroupTransparency=1,ClipsDescendants=true,ZIndex=201,Parent=slot})
-    corner(card,6);stroke(card,C.Border)
+    corner(card,12);stroke(card,C.Border)
     -- Same look as the brand card: muted blue-to-gray fade (blue at the
     -- bottom) plus the diagonal blue-white shimmer sweep. The frame must be
     -- white because a UIGradient multiplies instead of replacing.
@@ -3289,8 +3557,8 @@ function Tab:AddSubTab(name)
     pad(page,12,16,16,16)
     table.insert(tab._window._noDrag,page)
     local card=make("Frame",{Size=UDim2.new(1,-32,0,0),AutomaticSize=Enum.AutomaticSize.Y,BackgroundColor3=C.CardBg,Parent=page})
-    corner(card,10);stroke(card);pad(card,14,14,16,16)
-    make("UIListLayout",{FillDirection=Enum.FillDirection.Vertical,SortOrder=Enum.SortOrder.LayoutOrder,Padding=UDim.new(0,8),Parent=card})
+    corner(card,14);stroke(card);pad(card,18,18,20,20)
+    make("UIListLayout",{FillDirection=Enum.FillDirection.Vertical,SortOrder=Enum.SortOrder.LayoutOrder,Padding=UDim.new(0,10),Parent=card})
     local sub=setmetatable({_tab=tab,_window=tab._window,_pill=pill,_page=page,_card=card},SubTab)
     pill.MouseButton1Click:Connect(function() tab:_selectSub(sub) end)
     pill.MouseEnter:Connect(function() if tab._activeSub~=sub then tween(pill,{BackgroundColor3=C.NavHover}) end end)
@@ -3343,10 +3611,20 @@ function SubTab:AddButton(opts)
     opts=opts or {}
     local primary=opts.Primary==true or opts.Style=="primary"
     local btn=make("TextButton",{Text=opts.Name or "Button",Font=Enum.Font.GothamMedium,TextSize=12,TextColor3=primary and C.AccentText or C.TextGray,Size=UDim2.new(1,0,0,28),BackgroundColor3=primary and C.Accent or C.Element,Parent=self._card})
-    autoOrder(btn);corner(btn,6)
+    autoOrder(btn);corner(btn,8)
     if primary then btn.Font=Enum.Font.GothamBold end
-    btn.MouseEnter:Connect(function() if primary then tween(btn,{BackgroundTransparency=0.14}) else tween(btn,{BackgroundColor3=C.ElementHover}) end end)
-    btn.MouseLeave:Connect(function() if primary then tween(btn,{BackgroundTransparency=0}) else tween(btn,{BackgroundColor3=C.Element}) end end)
+    local btnScale=make("UIScale",{Scale=1,Parent=btn})
+    local btnGlow=make("UIStroke",{Color=C.Accent,Thickness=1,Transparency=1,ApplyStrokeMode=Enum.ApplyStrokeMode.Border,Parent=btn})
+    btn.MouseEnter:Connect(function()
+        if primary then tween(btn,{BackgroundTransparency=0.14}) else tween(btn,{BackgroundColor3=C.ElementHover}) end
+        TweenService:Create(btnScale,TWEEN,{Scale=1.02}):Play()
+        TweenService:Create(btnGlow,TWEEN,{Transparency=primary and 0.6 or 0.35}):Play()
+    end)
+    btn.MouseLeave:Connect(function()
+        if primary then tween(btn,{BackgroundTransparency=0}) else tween(btn,{BackgroundColor3=C.Element}) end
+        TweenService:Create(btnScale,TWEEN,{Scale=1}):Play()
+        TweenService:Create(btnGlow,TWEEN,{Transparency=1}):Play()
+    end)
     btn.MouseButton1Click:Connect(function() fire(opts.Callback) end)
     return btn
 end
@@ -3391,7 +3669,7 @@ function SubTab:AddKeybind(opts)
     if typeof(key)~="EnumItem" then key=nil end
     local row=newRow(self._card,30); rowLabels(row,opts.Name or "Keybind",opts.Description,80)
     local btn=make("TextButton",{Text=key and key.Name or "None",Font=Enum.Font.GothamMedium,TextSize=11,TextColor3=C.TextGray,Size=UDim2.fromOffset(70,22),AnchorPoint=Vector2.new(1,0.5),Position=UDim2.new(1,0,0.5,0),BackgroundColor3=C.Element,Parent=row})
-    corner(btn,6)
+    corner(btn,8)
     local listening=false; local conn
     local function setKey(k)
         if k~=nil and typeof(k)~="EnumItem" then return end
@@ -3432,7 +3710,7 @@ function SubTab:AddInput(opts)
     opts=opts or {}
     local row=newRow(self._card,30); rowLabels(row,opts.Name or "Input",opts.Description,120)
     local holder=make("Frame",{Size=UDim2.fromOffset(110,22),AnchorPoint=Vector2.new(1,0.5),Position=UDim2.new(1,0,0.5,0),BackgroundColor3=C.Element,Parent=row})
-    corner(holder,6)
+    corner(holder,8)
     local box=make("TextBox",{Text=opts.Default or "",PlaceholderText=opts.Placeholder or "...",PlaceholderColor3=C.Placeholder,Font=Enum.Font.Gotham,TextSize=12,TextColor3=C.TextGray,TextXAlignment=Enum.TextXAlignment.Left,BackgroundTransparency=1,ClearTextOnFocus=false,ClipsDescendants=true,Position=UDim2.fromOffset(8,0),Size=UDim2.new(1,-30,1,0),Parent=holder})
     inputIcon(holder)
     box.FocusLost:Connect(function(ep) fire(opts.Callback,box.Text,ep) end)
@@ -3446,7 +3724,7 @@ function SubTab:AddDropdown(opts)
     local IH=22; local IP=2; local SH=26; local LW=160
     local row=newRow(self._card,30); rowLabels(row,opts.Name or "Dropdown",opts.Description,130)
     local btn=make("TextButton",{Text="",Size=UDim2.fromOffset(120,22),AnchorPoint=Vector2.new(1,0.5),Position=UDim2.new(1,0,0.5,0),BackgroundColor3=C.Element,Parent=row})
-    corner(btn,6)
+    corner(btn,8)
     local vl=make("TextLabel",{Text=tostring(value),Font=Enum.Font.Gotham,TextSize=12,TextColor3=C.TextGray,TextXAlignment=Enum.TextXAlignment.Left,TextTruncate=Enum.TextTruncate.AtEnd,BackgroundTransparency=1,Position=UDim2.fromOffset(8,0),Size=UDim2.new(1,-26,1,0),Parent=btn})
     sortIcon(btn)
     local win=self._window; local sp=self._page; local tp=self._tab._page
@@ -3534,7 +3812,7 @@ function SubTab:AddMultiDropdown(opts)
     if type(opts.Default)=="table" then for _,o in ipairs(opts.Default) do selected[o]=true end end
     local row=newRow(self._card,30); rowLabels(row,opts.Name or "Dropdown",opts.Description,130)
     local btn=make("TextButton",{Text="",Size=UDim2.fromOffset(120,22),AnchorPoint=Vector2.new(1,0.5),Position=UDim2.new(1,0,0.5,0),BackgroundColor3=C.Element,Parent=row})
-    corner(btn,6)
+    corner(btn,8)
     local vl=make("TextLabel",{Text="None",Font=Enum.Font.Gotham,TextSize=12,TextColor3=C.TextGray,TextXAlignment=Enum.TextXAlignment.Left,TextTruncate=Enum.TextTruncate.AtEnd,BackgroundTransparency=1,Position=UDim2.fromOffset(8,0),Size=UDim2.new(1,-26,1,0),Parent=btn})
     sortIcon(btn)
     local win=self._window; local sp=self._page; local tp=self._tab._page
