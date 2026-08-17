@@ -32,6 +32,9 @@ local Library = loadstring(game:HttpGet("https://sovereigns-ui.vercel.app/main.l
 local Window = Library:CreateWindow({
     Name = "My Menu",
     Size = UDim2.fromOffset(700, 490),
+    Theme = "Black",
+    Accent = "#8B5CF6",
+    Font = "Gotham",
 })
 
 local Tab = Window:AddTab({ Name = "Main", Icon = "home" })
@@ -52,14 +55,35 @@ General:AddToggle({
   Keybind, Input, Label, Paragraph, Section, Divider
 - `Library.Flags` — get/set every element's value by name
 - Config system: `Library:SaveConfig`, `LoadConfig`, `ListConfigs`, `DeleteConfig`
-- Built-in themes (`Dark`, `Light`, `OLED`) plus custom theme tables
-- Notification system with `info` / `success` / `warning` / `error` styles
+- Built-in themes (`Dark`, `Light`, `OLED`, `White`, `Black`) plus custom theme tables
+- Notification system with `info` / `success` / `warning` / `error` styles, stacked bottom-right
+- Liquid-glass window, Dynamic Island minimize state, animated toggles and sliders
+- Accent colors from `Color3`, Hex, RGB strings, or RGB tables
+- Runtime font selection through `Library:SetFont()` and `Library.Fonts`
 
 ## Customizing
 
 Colors, spacing, and animation timing live in the `C` and `TWEEN` tables near
-the top of `main.lua`. Icons are keyed by name in the `ICONS` table — pass any
-of those keys, or a raw `rbxassetid://...`, to `Icon = ...` on tabs.
+the top of `main.lua`. Themes can be changed at runtime:
+
+```luau
+Library:SetTheme("White")
+Library:SetAccent("#8B5CF6")
+Library:SetAccent({ r = 34, g = 197, b = 94 })
+Library:SetFont("SourceSans")
+```
+
+Available font keys are `Gotham`, `SourceSans`, `Arial`, `Code`, `Fantasy`,
+`SciFi`, `Cartoon`, and `Arcade`. Icons are keyed by name in the `ICONS` table.
+For Lucide icons, upload the SVG/PNG to Roblox first, then register the resulting
+asset ID:
+
+```luau
+Library:RegisterIcon("sparkles", "rbxassetid://1234567890")
+```
+
+Roblox ImageLabels cannot render a Lucide website URL directly, so the upload
+step is required for executor compatibility.
 
 ## Hosting
 
