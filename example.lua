@@ -94,15 +94,29 @@ Display:AddToggle({
 
 Display:AddDropdown({
     Name = "Theme", Options = {
-        "Dark", "Light", "OLED", "Emerald", "Plant",
+        "Dark", "Light", "OLED", "Black", "White", "Emerald", "Plant",
         "MonokaiPro", "Midnight", "Violet", "Rose", "Gold",
     }, Default = "Dark",
     Callback = function(theme) Library:SetTheme(theme) end,
 })
 
+Display:AddDropdown({
+    Name = "Font", Options = Library:GetFontOptions(), Default = Library:GetFont(),
+    Callback = function(font) Library:SetFont(font) end,
+})
+
 Display:AddColorPicker({
     Name = "Accent Color", Default = Color3.fromRGB(167, 200, 244),
-    Callback = function(color) print("Accent:", color) end,
+    Callback = function(color) Library:SetAccentColor(color) end,
+})
+
+Display:AddInput({
+    Name = "Accent Hex", Placeholder = "#A7C8F4",
+    Callback = function(text)
+        if not Library:SetAccentColor(text) then
+            Library:Notify({ Title = "Accent Color", Content = "Use a hex code like #A7C8F4.", Style = "warning" })
+        end
+    end,
 })
 
 -- ── Audio ───────────────────────────────────────────────────────────────
@@ -143,30 +157,9 @@ About:AddParagraph({
         .. "typical game settings layout using every element type.",
 })
 
-About:AddInput({ Name = "Config Name", Placeholder = "my-config", Flag = "configName" })
-
-About:AddButton({
-    Name = "Save Config", Primary = true,
-    Callback = function()
-        local name = Library:GetFlag("configName")
-        if name == "" or name == nil then
-            Library:Notify({ Title = "Config", Content = "Type a name first.", Style = "warning" })
-            return
-        end
-        Library:SaveConfig(name)
-        Library:Notify({ Title = "Config", Content = "Saved '" .. name .. "'.", Style = "success" })
-    end,
-})
-
-About:AddButton({
-    Name = "Load Config",
-    Callback = function()
-        local name = Library:GetFlag("configName")
-        if name == "" or name == nil then return end
-        Library:LoadConfig(name)
-        Library:Notify({ Title = "Config", Content = "Loaded '" .. name .. "'.", Style = "info" })
-    end,
-})
+-- Full config UI in one call — Save / Load / Load Last / Delete / Refresh,
+-- plus a live list of what's already saved.
+About:AddConfigManager()
 
 -- ── Startup notification ───────────────────────────────────────────────
 Library:Notify({
