@@ -17,115 +17,124 @@ local PROFILE_TWEEN = TweenInfo.new(0.32, Enum.EasingStyle.Quart, Enum.EasingDir
 -- ════════════════════════════════════════════════════════════════════════════
 -- BUILT-IN ICON LIBRARY
 -- ════════════════════════════════════════════════════════════════════════════
+-- Verified real Lucide-icon Roblox asset ids, sourced from the widely-used
+-- public Fluent UI library's icon pack (github.com/dawid-scripts/Fluent —
+-- one of the most-installed Roblox UI libraries, so these ids are known to
+-- resolve). Several keys below previously pointed at placeholder ids
+-- (11111111111) or, worse, at the WRONG real icon (e.g. "grid" was
+-- pointing at the settings-gear id, "combat"/"sword" was pointing at the
+-- ✕ close icon) — those are corrected here, and formerly-shared ids that
+-- should be distinct (music vs volume, file vs save, code vs terminal)
+-- are now split apart.
 local ICONS = {
-    home            = "rbxassetid://4562959382",
-    dashboard       = "rbxassetid://115870883170035",
-    search          = "rbxassetid://18733177504",
-    settings        = "rbxassetid://4738901432",
-    gear            = "rbxassetid://117427252698455",
-    menu            = "rbxassetid://10734896206",
-    list            = "rbxassetid://10709790373",
-    grid            = "rbxassetid://10734950309",
-    sliders         = "rbxassetid://10734897102",
-    swords          = "rbxassetid://10747384394",
-    sword           = "rbxassetid://10747384394",
-    combat          = "rbxassetid://10747384394",
-    shield          = "rbxassetid://98206735878224",
-    target          = "rbxassetid://123292899197910",
-    crosshair       = "rbxassetid://10723434538",
-    aim             = "rbxassetid://10723434538",
-    bolt            = "rbxassetid://79160363518966",
-    lightning       = "rbxassetid://125222658692748",
-    zap             = "rbxassetid://79160363518966",
-    fire            = "rbxassetid://10723415285",
-    flame           = "rbxassetid://10723415285",
-    star            = "rbxassetid://10734924532",
-    sparkle         = "rbxassetid://10723422246",
-    player          = "rbxassetid://82179723353246",
-    user            = "rbxassetid://10747387118",
-    person          = "rbxassetid://77052607579460",
-    users           = "rbxassetid://10747387298",
-    team            = "rbxassetid://10747387298",
-    group           = "rbxassetid://10747387298",
-    eye             = "rbxassetid://131012605615689",
-    visible         = "rbxassetid://10709790644",
-    visuals         = "rbxassetid://10709790644",
-    render          = "rbxassetid://10709790644",
-    esp             = "rbxassetid://10709790644",
-    eyeoff          = "rbxassetid://10709790497",
-    hidden          = "rbxassetid://10709790497",
-    globe           = "rbxassetid://13567318216",
-    world           = "rbxassetid://10709778567",
-    compass         = "rbxassetid://10709790373",
-    map             = "rbxassetid://84513890895579",
-    move            = "rbxassetid://10723422998",
-    arrows          = "rbxassetid://10723422998",
-    heart           = "rbxassetid://10723415389",
-    like            = "rbxassetid://10723415389",
-    bell            = "rbxassetid://10723345067",
-    notification    = "rbxassetid://10723345067",
-    alert           = "rbxassetid://10723345067",
-    info            = "rbxassetid://10723415389",
-    about           = "rbxassetid://10723415389",
-    help            = "rbxassetid://10723415389",
-    warning         = "rbxassetid://10747387522",
-    caution         = "rbxassetid://10747387522",
-    check           = "rbxassetid://5180860280",
-    checkmark       = "rbxassetid://5180860280",
-    lock            = "rbxassetid://10723417148",
-    unlock          = "rbxassetid://10723422607",
-    power           = "rbxassetid://10723422754",
-    toggle          = "rbxassetid://10723422754",
-    refresh         = "rbxassetid://10723417783",
-    folder          = "rbxassetid://10709791437",
-    file            = "rbxassetid://10709791258",
-    save            = "rbxassetid://10709791258",
-    download        = "rbxassetid://10709790497",
-    clipboard       = "rbxassetid://10709751190",
-    chat            = "rbxassetid://10723345037",
-    message         = "rbxassetid://10723345037",
-    play            = "rbxassetid://10723422607",
-    music           = "rbxassetid://10723421745",
-    volume          = "rbxassetid://10723421745",
-    camera          = "rbxassetid://10709778567",
-    image           = "rbxassetid://10709791437",
-    clock           = "rbxassetid://10723345037",
-    time            = "rbxassetid://10723345037",
-    timer           = "rbxassetid://10723345037",
-    wrench          = "rbxassetid://100244385350031",
-    tool            = "rbxassetid://10734950309",
-    code            = "rbxassetid://10709751190",
-    terminal        = "rbxassetid://10709751190",
-    script          = "rbxassetid://10709751190",
-    bug             = "rbxassetid://10723415903",
-    debug           = "rbxassetid://10723415903",
-    layers          = "rbxassetid://10723417148",
-    inventory       = "rbxassetid://14118896735",
-    backpack        = "rbxassetid://10723415285",
-    box             = "rbxassetid://10723415285",
-    package         = "rbxassetid://10723415285",
-    gift            = "rbxassetid://10723415389",
-    crown           = "rbxassetid://10734924532",
-    gem             = "rbxassetid://10723421745",
-    coin            = "rbxassetid://13522871708",
-    magic           = "rbxassetid://11111111111",
-    wand            = "rbxassetid://10734924532",
-    potion          = "rbxassetid://10723415285",
-    skull           = "rbxassetid://10747384394",
-    death           = "rbxassetid://10747384394",
-    gamepad         = "rbxassetid://10723422998",
-    controller      = "rbxassetid://10723422998",
-    teleport        = "rbxassetid://10090587519",
-    speed           = "rbxassetid://11111111111",
-    running         = "rbxassetid://10723422998",
-    favorite        = "rbxassetid://10734924532",
+    home            = "rbxassetid://10723407389", -- lucide-home
+    dashboard       = "rbxassetid://10723424646", -- lucide-layout-dashboard
+    search          = "rbxassetid://10734943674", -- lucide-search
+    settings        = "rbxassetid://10734950309", -- lucide-settings
+    gear            = "rbxassetid://10709810948", -- lucide-cog
+    menu            = "rbxassetid://10734887784", -- lucide-menu
+    list            = "rbxassetid://10723433811", -- lucide-list
+    grid            = "rbxassetid://10723404936", -- lucide-grid
+    sliders         = "rbxassetid://10734963400", -- lucide-sliders
+    swords          = "rbxassetid://10734975692", -- lucide-swords
+    sword           = "rbxassetid://10734975486", -- lucide-sword
+    combat          = "rbxassetid://10734975692", -- lucide-swords
+    shield          = "rbxassetid://10734951847", -- lucide-shield
+    target          = "rbxassetid://10734977012", -- lucide-target
+    crosshair       = "rbxassetid://10723377537", -- lucide-focus (closest available)
+    aim             = "rbxassetid://10723377537", -- lucide-focus
+    bolt            = "rbxassetid://10709774068", -- lucide-battery-charging (no lucide-zap in this pack)
+    lightning       = "rbxassetid://10709774068",
+    zap             = "rbxassetid://10709774068",
+    fire            = "rbxassetid://10723376114", -- lucide-flame
+    flame           = "rbxassetid://10723376114", -- lucide-flame
+    star            = "rbxassetid://10734966248", -- lucide-star
+    sparkle         = "rbxassetid://10747376349", -- lucide-wand-2
+    player          = "rbxassetid://10747373176", -- lucide-user
+    user            = "rbxassetid://10747373176", -- lucide-user
+    person          = "rbxassetid://10747373176", -- lucide-user
+    users           = "rbxassetid://10747373426", -- lucide-users
+    team            = "rbxassetid://10747373426", -- lucide-users
+    group           = "rbxassetid://10747373426", -- lucide-users
+    eye             = "rbxassetid://10723346959", -- lucide-eye
+    visible         = "rbxassetid://10723346959", -- lucide-eye
+    visuals         = "rbxassetid://10723346959", -- lucide-eye
+    render          = "rbxassetid://10723346959", -- lucide-eye
+    esp             = "rbxassetid://10723346959", -- lucide-eye
+    eyeoff          = "rbxassetid://10723346871", -- lucide-eye-off
+    hidden          = "rbxassetid://10723346871", -- lucide-eye-off
+    globe           = "rbxassetid://10723404337", -- lucide-globe
+    world           = "rbxassetid://10723404337", -- lucide-globe
+    compass         = "rbxassetid://10709811445", -- lucide-compass
+    map             = "rbxassetid://10734886202", -- lucide-map
+    move            = "rbxassetid://10734900011", -- lucide-move
+    arrows          = "rbxassetid://10734900011", -- lucide-move
+    heart           = "rbxassetid://10723406885", -- lucide-heart
+    like            = "rbxassetid://10723406885", -- lucide-heart
+    bell            = "rbxassetid://10709775704", -- lucide-bell
+    notification    = "rbxassetid://10709775704", -- lucide-bell
+    alert           = "rbxassetid://10709775704", -- lucide-bell
+    info            = "rbxassetid://10723415903", -- lucide-info
+    about           = "rbxassetid://10723415903", -- lucide-info
+    help            = "rbxassetid://10723406988", -- lucide-help-circle
+    warning         = "rbxassetid://10709753149", -- lucide-alert-triangle
+    caution         = "rbxassetid://10709753149", -- lucide-alert-triangle
+    check           = "rbxassetid://10709790644", -- lucide-check
+    checkmark       = "rbxassetid://10709790644", -- lucide-check
+    lock            = "rbxassetid://10723434711", -- lucide-lock
+    unlock          = "rbxassetid://10747366027", -- lucide-unlock
+    power           = "rbxassetid://10734930466", -- lucide-power
+    toggle          = "rbxassetid://10734984834", -- lucide-toggle-left
+    refresh         = "rbxassetid://10734933222", -- lucide-refresh-cw
+    folder          = "rbxassetid://10723387563", -- lucide-folder
+    file            = "rbxassetid://10723374641", -- lucide-file
+    save            = "rbxassetid://10734941499", -- lucide-save
+    download        = "rbxassetid://10723344270", -- lucide-download
+    clipboard       = "rbxassetid://10709799288", -- lucide-clipboard
+    chat            = "rbxassetid://10734888000", -- lucide-message-circle
+    message         = "rbxassetid://10734888000", -- lucide-message-circle
+    play            = "rbxassetid://10734923549", -- lucide-play
+    music           = "rbxassetid://10734905958", -- lucide-music
+    volume          = "rbxassetid://10747375679", -- lucide-volume-2
+    camera          = "rbxassetid://10709789686", -- lucide-camera
+    image           = "rbxassetid://10723415040", -- lucide-image
+    clock           = "rbxassetid://10709805144", -- lucide-clock
+    time            = "rbxassetid://10709805144", -- lucide-clock
+    timer           = "rbxassetid://10734984606", -- lucide-timer
+    wrench          = "rbxassetid://10747383470", -- lucide-wrench
+    tool            = "rbxassetid://10747383470", -- lucide-wrench
+    code            = "rbxassetid://10709810463", -- lucide-code
+    terminal        = "rbxassetid://10734982144", -- lucide-terminal
+    script          = "rbxassetid://10709810463", -- lucide-code
+    bug             = "rbxassetid://10709782845", -- lucide-bug
+    debug           = "rbxassetid://10709782845", -- lucide-bug
+    layers          = "rbxassetid://10723424505", -- lucide-layers
+    inventory       = "rbxassetid://10709769841", -- lucide-backpack
+    backpack        = "rbxassetid://10709769841", -- lucide-backpack
+    box             = "rbxassetid://10709782497", -- lucide-box
+    package         = "rbxassetid://10734909540", -- lucide-package
+    gift            = "rbxassetid://10723396402", -- lucide-gift
+    crown           = "rbxassetid://10709818626", -- lucide-crown
+    gem             = "rbxassetid://10723396000", -- lucide-gem
+    coin            = "rbxassetid://10709811110", -- lucide-coins
+    magic           = "rbxassetid://10747376349", -- lucide-wand-2
+    wand            = "rbxassetid://10747376349", -- lucide-wand-2
+    potion          = "rbxassetid://10734883986", -- lucide-flask-conical
+    skull           = "rbxassetid://10734962068", -- lucide-skull
+    death           = "rbxassetid://10734962068", -- lucide-skull
+    gamepad         = "rbxassetid://10723395215", -- lucide-gamepad-2
+    controller      = "rbxassetid://10723395215", -- lucide-gamepad-2
+    teleport        = "rbxassetid://10734906744", -- lucide-navigation
+    speed           = "rbxassetid://10723395708", -- lucide-gauge
+    running         = "rbxassetid://10709752035", -- lucide-activity
+    favorite        = "rbxassetid://10734966248", -- lucide-star
 }
 
 local NOTIFICATION_STYLES = {
-    info    = { Name = "Info",    Color = Color3.fromRGB(118, 151, 194), Icon = "rbxassetid://10723345067" },
-    success = { Name = "Success", Color = Color3.fromRGB(105, 166, 124), Icon = "rbxassetid://5180860280" },
-    warning = { Name = "Warning", Color = Color3.fromRGB(190, 154, 84),  Icon = "rbxassetid://10747387522" },
-    error   = { Name = "Error",   Color = Color3.fromRGB(190, 99, 99),   Icon = "rbxassetid://10747387522" },
+    info    = { Name = "Info",    Color = Color3.fromRGB(118, 151, 194), Icon = "rbxassetid://10723415903" }, -- lucide-info
+    success = { Name = "Success", Color = Color3.fromRGB(105, 166, 124), Icon = "rbxassetid://10709790387" }, -- lucide-check-circle-2
+    warning = { Name = "Warning", Color = Color3.fromRGB(190, 154, 84),  Icon = "rbxassetid://10709753149" }, -- lucide-alert-triangle
+    error   = { Name = "Error",   Color = Color3.fromRGB(190, 99, 99),   Icon = "rbxassetid://10747383819" }, -- lucide-x-circle
 }
 
 local C = {
@@ -2290,6 +2299,7 @@ function Library:CreateWindow(opts)
             Size = UDim2.fromOffset(windowSize.X.Offset + layer.grow, windowSize.Y.Offset + layer.grow),
             BackgroundColor3 = Color3.fromRGB(0, 0, 0),
             BackgroundTransparency = layer.alpha,
+            Visible = not loadingEnabled,
             ZIndex = 1,
             Parent = container,
         })
@@ -2428,6 +2438,7 @@ function Library:CreateWindow(opts)
     local mainTopButtons = {}
     local burgerButton
     local burgerScale
+    local islandExpandThenSettle
     local windowRef
     local noDrag = {}
     table.insert(noDrag, hotbar)
@@ -2451,8 +2462,8 @@ function Library:CreateWindow(opts)
                 if main and main.Parent then main.Visible = false; mainScale.Scale = 1 end
                 if burgerButton and burgerButton.Parent then
                     burgerButton.Visible = true
-                    burgerScale.Scale = 0.5
-                    TweenService:Create(burgerScale, TweenInfo.new(0.42, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Scale = 1 }):Play()
+                    if islandExpandThenSettle then islandExpandThenSettle()
+                    else burgerScale.Scale = 0.5; TweenService:Create(burgerScale, TweenInfo.new(0.42, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Scale = 1 }):Play() end
                 end
             end)
         elseif was then
@@ -2500,34 +2511,109 @@ function Library:CreateWindow(opts)
     minimizeBtn.MouseLeave:Connect(function() TweenService:Create(minScale,TWEEN,{Scale=1}):Play(); tween(minGlow,{Transparency=1}) end)
 
     -- ── "Dynamic Island" minimized state ────────────────────────────────
-    -- A theme-synced capsule docked at top-center of the screen (mirrors
-    -- the referenced DynamicWin/WindUI style) instead of a plain corner
-    -- button. Uses real theme colors (CardBg/ElementHover) so `make()`'s
-    -- auto-tagging picks it up for live repaints when SetTheme runs —
-    -- same mechanism every other themed element in the library uses.
+    -- A theme-synced capsule docked at top-center of the screen, following
+    -- the reference's 3-stage behavior: pops open EXPANDED with a status
+    -- line right when minimized, contracts down to a normal logo-only
+    -- pill shortly after, then shrinks further to a tiny idle sliver if
+    -- left alone — expanding back on hover/click. Uses real theme colors
+    -- (CardBg/ElementHover) so `make()`'s auto-tagging picks it up for
+    -- live repaints when SetTheme runs, same as everything else themed.
+    local ISLAND_EXPANDED = UDim2.fromOffset(230, 44)
+    local ISLAND_NORMAL   = UDim2.fromOffset(90, 34)
+    local ISLAND_IDLE     = UDim2.fromOffset(48, 20)
+    local ISLAND_IDLE_DELAY = 6 -- seconds of no interaction before it shrinks to idle
+
     burgerButton = make("TextButton", {
         Name = "Island", Text = "", AutoButtonColor = false,
         AnchorPoint = Vector2.new(0.5,0), Position = UDim2.new(0.5,0,0,10),
-        Size = UDim2.fromOffset(76,34), BackgroundColor3 = C.CardBg,
+        Size = ISLAND_NORMAL, BackgroundColor3 = C.CardBg,
+        ClipsDescendants = true,
         Visible = false, ZIndex = 11, Parent = screenGui,
     })
     corner(burgerButton, 17)
     burgerScale = make("UIScale", { Scale = 1, Parent = burgerButton })
     local islandGlow = stroke(burgerButton, C.Accent); islandGlow.Thickness = 1.2; islandGlow.Transparency = 0.55
-    -- Small "ready" status dot, tucked in the corner rather than taking a
-    -- whole text row now that the label is gone.
-    local islandDot = make("Frame", { AnchorPoint=Vector2.new(1,0), Position=UDim2.fromOffset(-8,8), Size=UDim2.fromOffset(6,6), BackgroundColor3=C.Accent, ZIndex=13, Parent=burgerButton })
-    circle(islandDot)
-    make("ImageLabel",{Name="IslandLogo",Image=logoAsset,BackgroundTransparency=1,AnchorPoint=Vector2.new(0.5,0.5),Position=UDim2.fromScale(0.5,0.5),Size=UDim2.fromOffset(26,26),ZIndex=13,ScaleType=Enum.ScaleType.Fit,Parent=burgerButton})
+
+    -- Fixed "camera" reference on the right edge — a plain dark lens, not
+    -- an animated accent-colored dot, matching a real Dynamic Island.
+    local islandCamera = make("Frame", { AnchorPoint=Vector2.new(1,0.5), Position=UDim2.new(1,-11,0.5,0), Size=UDim2.fromOffset(9,9), BackgroundColor3=Color3.fromRGB(8,8,10), ZIndex=13, Parent=burgerButton })
+    circle(islandCamera)
+    stroke(islandCamera, Color3.fromRGB(42,42,48)).Thickness = 1
+    local camGlint = make("Frame", { AnchorPoint=Vector2.new(0.5,0.5), Position=UDim2.new(0.36,0,0.36,0), Size=UDim2.fromOffset(2,2), BackgroundColor3=Color3.fromRGB(75,75,85), ZIndex=14, Parent=islandCamera })
+    circle(camGlint)
+
+    local islandLogo = make("ImageLabel",{Name="IslandLogo",Image=logoAsset,BackgroundTransparency=1,AnchorPoint=Vector2.new(0,0.5),Position=UDim2.fromOffset(10,17),Size=UDim2.fromOffset(30,30),ZIndex=13,ScaleType=Enum.ScaleType.Fit,Parent=burgerButton})
+    local islandTitle = make("TextLabel",{Name="IslandTitle",Text=(opts.Name or "Settings").." minimized",Font=Enum.Font.GothamBold,TextSize=12,TextColor3=C.White,TextTransparency=1,TextXAlignment=Enum.TextXAlignment.Left,TextTruncate=Enum.TextTruncate.AtEnd,BackgroundTransparency=1,Position=UDim2.fromOffset(48,7),Size=UDim2.new(1,-70,0,15),ZIndex=13,Parent=burgerButton})
+    local islandSub = make("TextLabel",{Name="IslandSub",Text="Tap to reopen",Font=Enum.Font.Gotham,TextSize=10,TextColor3=C.TextDim,TextTransparency=1,TextXAlignment=Enum.TextXAlignment.Left,TextTruncate=Enum.TextTruncate.AtEnd,BackgroundTransparency=1,Position=UDim2.fromOffset(48,22),Size=UDim2.new(1,-70,0,13),ZIndex=13,Parent=burgerButton})
+
     -- Slow breathing pulse on the glow so the island reads as "alive"
-    -- while sitting minimized, like the reference project's idle state.
+    -- while sitting minimized.
     local islandBreatheConn
     islandBreatheConn = RunService.RenderStepped:Connect(function()
         if not burgerButton or not burgerButton.Parent then if islandBreatheConn then islandBreatheConn:Disconnect() end return end
         if not burgerButton.Visible then return end
         islandGlow.Transparency = 0.55 + math.sin(os.clock()*2.2)*0.2
     end)
+
+    local islandStage = "normal" -- "expanded" | "normal" | "idle"
+    local islandLastInteract = os.clock()
+    local islandWatchdogRunning = false
+    local ISL_TWEEN = TweenInfo.new(0.32, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+    local ISL_TWEEN_IN = TweenInfo.new(0.22, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
+
+    local function islandGoNormal(instant)
+        islandStage = "normal"
+        local ti = instant and TweenInfo.new(0.001) or ISL_TWEEN
+        TweenService:Create(burgerButton, ti, { Size = ISLAND_NORMAL }):Play()
+        TweenService:Create(islandLogo, ti, { Position = UDim2.fromOffset(10,17) }):Play()
+        tween(islandTitle, { TextTransparency = 1 }); tween(islandSub, { TextTransparency = 1 })
+    end
+    local function islandGoIdle()
+        if islandStage ~= "normal" then return end
+        islandStage = "idle"
+        TweenService:Create(burgerButton, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut), { Size = ISLAND_IDLE }):Play()
+        tween(islandLogo, { ImageTransparency = 1 })
+    end
+    local function islandWatchdog()
+        if islandWatchdogRunning then return end
+        islandWatchdogRunning = true
+        task.spawn(function()
+            while burgerButton and burgerButton.Parent and burgerButton.Visible do
+                task.wait(0.5)
+                if islandStage == "normal" and (os.clock() - islandLastInteract) > ISLAND_IDLE_DELAY then
+                    islandGoIdle()
+                end
+            end
+            islandWatchdogRunning = false
+        end)
+    end
+    local function islandWake()
+        islandLastInteract = os.clock()
+        if islandStage == "idle" then
+            islandStage = "normal"
+            TweenService:Create(burgerButton, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Size = ISLAND_NORMAL }):Play()
+            islandLogo.ImageTransparency = 0
+        end
+    end
+    -- Called from setMinimized(): pop open EXPANDED with a status line,
+    -- hold briefly, then contract to the normal logo-only pill and start
+    -- the idle watchdog.
+    islandExpandThenSettle = function()
+        islandStage = "expanded"; islandLastInteract = os.clock()
+        burgerButton.Size = UDim2.fromOffset(48,34)
+        islandLogo.Position = UDim2.fromOffset(9,17)
+        TweenService:Create(burgerButton, ISL_TWEEN, { Size = ISLAND_EXPANDED }):Play()
+        tween(islandTitle, { TextTransparency = 0 }); tween(islandSub, { TextTransparency = 0 })
+        task.delay(1.6, function()
+            if not burgerButton or not burgerButton.Parent or not burgerButton.Visible then return end
+            islandGoNormal(false)
+            islandLastInteract = os.clock()
+            islandWatchdog()
+        end)
+    end
+
     burgerButton.MouseEnter:Connect(function()
+        islandWake()
         TweenService:Create(burgerScale, TWEEN, { Scale = 1.08 }):Play()
         tween(burgerButton, { BackgroundColor3 = C.ElementHover })
     end)
@@ -2536,7 +2622,7 @@ function Library:CreateWindow(opts)
         tween(burgerButton, { BackgroundColor3 = C.CardBg })
     end)
 
-    burgerButton.MouseButton1Click:Connect(function() setMinimized(false) end)
+    burgerButton.MouseButton1Click:Connect(function() islandWake(); setMinimized(false) end)
     closeBtn.MouseButton1Click:Connect(function()
         if windowRef and windowRef.Destroy then windowRef:Destroy()
         else if screenGui then screenGui:Destroy() end end
@@ -3473,6 +3559,7 @@ function Library:CreateWindow(opts)
             while not loadingMotionComplete and screenGui.Parent do RunService.Heartbeat:Wait() end
             if not screenGui.Parent or not loadingLayer.Parent then return end
             main.Visible=true; hotbar.Visible=true
+            for _,s in ipairs(shadowFrames) do if s and s.Parent then s.Visible=true end end
             TweenService:Create(mainRevealScale,TweenInfo.new(0.46,Enum.EasingStyle.Quart,Enum.EasingDirection.Out),{Scale=1}):Play()
             local fo=TweenService:Create(loadingLayer,TweenInfo.new(0.48,Enum.EasingStyle.Quart,Enum.EasingDirection.InOut),{GroupTransparency=1})
             local ce=loadingContent and TweenService:Create(loadingContent,TweenInfo.new(0.46,Enum.EasingStyle.Quart,Enum.EasingDirection.In),{Position=UDim2.new(0.5,0,0.5,-18),GroupTransparency=1})
