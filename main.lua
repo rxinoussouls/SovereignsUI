@@ -1777,7 +1777,7 @@ local function buildMusicPlayer(cfg)
     local musicPanel = make("CanvasGroup", { Name = "MusicPlayer", AnchorPoint = Vector2.new(1, 1), Position = musicClosedPos, Size = UDim2.fromOffset(musicWidth, fullHeight), BackgroundColor3 = C.CardBg, BackgroundTransparency = 0.1, GroupTransparency = 1, ClipsDescendants = true, ZIndex = 150, Parent = screenGui })
     corner(musicPanel, 14)
     local musicPanelGlow = stroke(musicPanel, C.Accent); musicPanelGlow.Transparency = 0.7; musicPanelGlow.Thickness = 1
-    local musicSheen = make("Frame", { Name = "Sheen", Size = UDim2.fromScale(1, 1), BackgroundColor3 = Color3.fromRGB(255, 255, 255), ZIndex = 150, Parent = musicPanel })
+    local musicSheen = make("Frame", { Name = "Sheen", Size = UDim2.fromScale(1, 1), BackgroundColor3 = Color3.fromRGB(254, 254, 254), ZIndex = 150, Parent = musicPanel })
     make("UIGradient", { Rotation = 110, Color = ColorSequence.new({
         ColorSequenceKeypoint.new(0.00, Color3.fromRGB(255, 255, 255)),
         ColorSequenceKeypoint.new(0.45, Color3.fromRGB(255, 255, 255)),
@@ -2311,7 +2311,7 @@ function Library:CreateWindow(opts)
         -- matching it exactly.
         local mainDepth = make("Frame", {
             Name = "DepthGradient", Size = UDim2.fromScale(1, 1),
-            BackgroundColor3 = Color3.fromRGB(255, 255, 255), BackgroundTransparency = 0.88,
+            BackgroundColor3 = Color3.fromRGB(254, 254, 254), BackgroundTransparency = 0.88,
             Parent = main,
         })
         corner(mainDepth, 12)
@@ -2325,7 +2325,7 @@ function Library:CreateWindow(opts)
         -- else in the library (hotbar, island, cards) but full-window
         -- here, so the whole frame reads as a pane of glass, not just a
         -- flat panel.
-        local mainSheen = make("Frame", { Name = "GlassSheen", Size = UDim2.fromScale(1,1), BackgroundColor3 = Color3.fromRGB(255,255,255), Parent = main })
+        local mainSheen = make("Frame", { Name = "GlassSheen", Size = UDim2.fromScale(1,1), BackgroundColor3 = Color3.fromRGB(254,254,254), Parent = main })
         corner(mainSheen, 12)
         make("UIGradient", { Rotation = 115, Color = ColorSequence.new({
             ColorSequenceKeypoint.new(0.00, Color3.fromRGB(255,255,255)),
@@ -2403,7 +2403,7 @@ function Library:CreateWindow(opts)
     corner(hotbar, 11)
     -- Soft diagonal glass sheen, same recipe as the player card / music
     -- panel: a white overlay with a gradient transparency ramp.
-    local hotbarSheen = make("Frame", { Name = "Sheen", Size = UDim2.fromScale(1,1), BackgroundColor3 = Color3.fromRGB(255,255,255), ZIndex = 3, Parent = hotbar })
+    local hotbarSheen = make("Frame", { Name = "Sheen", Size = UDim2.fromScale(1,1), BackgroundColor3 = Color3.fromRGB(254,254,254), ZIndex = 3, Parent = hotbar })
     corner(hotbarSheen, 11)
     make("UIGradient", { Rotation = 100, Color = ColorSequence.new({
         ColorSequenceKeypoint.new(0.00, Color3.fromRGB(255,255,255)),
@@ -2556,7 +2556,7 @@ function Library:CreateWindow(opts)
     local islandGlow = stroke(burgerButton, C.Accent); islandGlow.Thickness = 1.4; islandGlow.Transparency = 0.5
     -- Diagonal glass sheen, same recipe used on the player card / music
     -- panel / hotbar — a translucent white wash that fades across the pill.
-    local islandSheen = make("Frame", { Name = "Sheen", Size = UDim2.fromScale(1,1), BackgroundColor3 = Color3.fromRGB(255,255,255), ZIndex = 11, Parent = burgerButton })
+    local islandSheen = make("Frame", { Name = "Sheen", Size = UDim2.fromScale(1,1), BackgroundColor3 = Color3.fromRGB(254,254,254), ZIndex = 11, Parent = burgerButton })
     corner(islandSheen, 19)
     make("UIGradient", { Rotation = 110, Color = ColorSequence.new({
         ColorSequenceKeypoint.new(0.00, Color3.fromRGB(255,255,255)),
@@ -2568,26 +2568,7 @@ function Library:CreateWindow(opts)
         NumberSequenceKeypoint.new(1.00, 1.00),
     }), Parent = islandSheen })
 
-    -- Glossy glass-sphere "camera" reference on the right edge: a dark
-    -- glass base, a diagonal highlight gradient, and a bright pinpoint
-    -- glint — reads like light catching a real camera lens rather than a
-    -- flat dot.
-    local islandCamera = make("Frame", { AnchorPoint=Vector2.new(1,0.5), Position=UDim2.new(1,-13,0.5,0), Size=UDim2.fromOffset(12,12), BackgroundColor3=Color3.fromRGB(10,12,16), ZIndex=13, Parent=burgerButton })
-    circle(islandCamera)
-    local camRing = stroke(islandCamera, Color3.fromRGB(255,255,255)); camRing.Thickness = 1; camRing.Transparency = 0.65
-    make("UIGradient", { Rotation = 120, Color = ColorSequence.new({
-        ColorSequenceKeypoint.new(0.00, Color3.fromRGB(120,140,170)),
-        ColorSequenceKeypoint.new(0.5,  Color3.fromRGB(10,12,16)),
-        ColorSequenceKeypoint.new(1.00, Color3.fromRGB(0,0,0)),
-    }), Transparency = NumberSequence.new({
-        NumberSequenceKeypoint.new(0.00, 0.35),
-        NumberSequenceKeypoint.new(0.5,  0.75),
-        NumberSequenceKeypoint.new(1.00, 0.55),
-    }), Parent = islandCamera })
-    local camGlint = make("Frame", { AnchorPoint=Vector2.new(0.5,0.5), Position=UDim2.new(0.32,0,0.3,0), Size=UDim2.fromOffset(3,3), BackgroundColor3=Color3.fromRGB(255,255,255), ZIndex=14, Parent=islandCamera })
-    circle(camGlint)
-
-    local islandLogo = make("ImageLabel",{Name="IslandLogo",Image=logoAsset,BackgroundTransparency=1,AnchorPoint=Vector2.new(0,0.5),Position=UDim2.fromOffset(11,19),Size=UDim2.fromOffset(36,36),ZIndex=13,ScaleType=Enum.ScaleType.Fit,Parent=burgerButton})
+    local islandLogo = make("ImageLabel",{Name="IslandLogo",Image=logoAsset,BackgroundTransparency=1,AnchorPoint=Vector2.new(0,0.5),Position=UDim2.fromOffset(34,19),Size=UDim2.fromOffset(36,36),ZIndex=13,ScaleType=Enum.ScaleType.Fit,Parent=burgerButton})
     local islandTitle = make("TextLabel",{Name="IslandTitle",Text=(opts.Name or "Settings").." minimized",Font=Enum.Font.GothamBold,TextSize=12,TextColor3=C.White,TextTransparency=1,TextXAlignment=Enum.TextXAlignment.Left,TextTruncate=Enum.TextTruncate.AtEnd,BackgroundTransparency=1,Position=UDim2.fromOffset(54,9),Size=UDim2.new(1,-76,0,15),ZIndex=13,Parent=burgerButton})
     local islandSub = make("TextLabel",{Name="IslandSub",Text="Tap to reopen",Font=Enum.Font.Gotham,TextSize=10,TextColor3=C.TextDim,TextTransparency=1,TextXAlignment=Enum.TextXAlignment.Left,TextTruncate=Enum.TextTruncate.AtEnd,BackgroundTransparency=1,Position=UDim2.fromOffset(54,25),Size=UDim2.new(1,-76,0,13),ZIndex=13,Parent=burgerButton})
 
@@ -2610,7 +2591,7 @@ function Library:CreateWindow(opts)
         islandStage = "normal"
         local ti = instant and TweenInfo.new(0.001) or ISL_TWEEN
         TweenService:Create(burgerButton, ti, { Size = ISLAND_NORMAL }):Play()
-        TweenService:Create(islandLogo, ti, { Position = UDim2.fromOffset(11,19), ImageTransparency = 0 }):Play()
+        TweenService:Create(islandLogo, ti, { Position = UDim2.fromOffset(34,19), ImageTransparency = 0 }):Play()
         tween(islandTitle, { TextTransparency = 1 }); tween(islandSub, { TextTransparency = 1 })
     end
     local function islandGoIdle()
@@ -2742,7 +2723,7 @@ function Library:CreateWindow(opts)
         corner(pcard,12)
         local pcardGlow = stroke(pcard,C.Accent); pcardGlow.Transparency=0.65; pcardGlow.Thickness=1.2
         local pcardScale = make("UIScale",{Scale=1,Parent=pcard})
-        local pcardSheen = make("Frame",{Size=UDim2.fromScale(1,1),BackgroundColor3=Color3.fromRGB(255,255,255),ZIndex=0,Parent=pcard}); corner(pcardSheen,12)
+        local pcardSheen = make("Frame",{Size=UDim2.fromScale(1,1),BackgroundColor3=Color3.fromRGB(254,254,254),ZIndex=0,Parent=pcard}); corner(pcardSheen,12)
         make("UIGradient",{Rotation=115,Color=ColorSequence.new({
             ColorSequenceKeypoint.new(0.00, Color3.fromRGB(255,255,255)),
             ColorSequenceKeypoint.new(0.40, Color3.fromRGB(255,255,255)),
@@ -3687,7 +3668,7 @@ function Window:Notify(opts)
     local cardGlow=make("UIStroke",{Color=style.Color,Thickness=1.2,Transparency=0.35,ApplyStrokeMode=Enum.ApplyStrokeMode.Border,Parent=card})
     -- Diagonal glass sheen (same recipe as the rest of the library's
     -- glass surfaces) sitting under the content.
-    local notifSheen=make("Frame",{Name="Sheen",Size=UDim2.fromScale(1,1),BackgroundColor3=Color3.fromRGB(255,255,255),ZIndex=201,Parent=card})
+    local notifSheen=make("Frame",{Name="Sheen",Size=UDim2.fromScale(1,1),BackgroundColor3=Color3.fromRGB(254,254,254),ZIndex=201,Parent=card})
     corner(notifSheen,18)
     make("UIGradient",{Rotation=105,Color=ColorSequence.new({
         ColorSequenceKeypoint.new(0.00, Color3.fromRGB(255,255,255)),
@@ -3857,11 +3838,11 @@ function Window:AddTab(opts)
     local hBtn=make("TextButton",{
         Text="", AutomaticSize=Enum.AutomaticSize.X,
         Size=UDim2.new(0,0,1,0),
-        BackgroundColor3=C.HotbarBg,
+        BackgroundColor3=C.HotbarBg, BackgroundTransparency=0.3,
         ZIndex=5, Parent=self._hotbarInner,
     })
     hBtn.LayoutOrder=#self._hotbarInner:GetChildren()
-    corner(hBtn,7); pad(hBtn,0,0,12,12)
+    corner(hBtn,11); pad(hBtn,0,0,14,14)
     table.insert(win._noDrag,hBtn)
     local hBtnScale=make("UIScale",{Scale=1,Parent=hBtn})
     -- Traveling-light border, same technique as the main window's outline,
@@ -4068,20 +4049,18 @@ function Tab:AddSubTab(name)
     table.insert(tab._window._noDrag,page)
     local card=make("Frame",{Size=UDim2.new(1,-32,0,0),AutomaticSize=Enum.AutomaticSize.Y,BackgroundColor3=C.CardBg,BackgroundTransparency=0.12,Parent=page})
     corner(card,14);stroke(card);pad(card,18,18,20,20)
-    -- Diagonal glass sheen, same recipe as the main window and every other
-    -- glass surface in the library — the content card underneath every
-    -- tab's elements is glass too now, not a flat solid panel.
-    local cardSheen=make("Frame",{Name="GlassSheen",Size=UDim2.fromScale(1,1),BackgroundColor3=Color3.fromRGB(255,255,255),ZIndex=0,Parent=card})
-    corner(cardSheen,14)
-    make("UIGradient",{Rotation=110,Color=ColorSequence.new({
+    -- Subtle top-to-bottom depth shading. This multiplies against the
+    -- card's own CardBg colour (arbitrary grey values that don't collide
+    -- with any theme key, unlike a pure-white base would — see the
+    -- "White" text-color key, which is near-black in the Light theme and
+    -- would otherwise get this element mis-tagged and repainted wrong on
+    -- theme switch) — safe across every theme, and a UIGradient is a
+    -- modifier rather than a GuiObject, so it can't disturb the
+    -- UIListLayout below the way a sibling Frame did before.
+    make("UIGradient", { Rotation = 90, Color = ColorSequence.new({
         ColorSequenceKeypoint.new(0.00, Color3.fromRGB(255,255,255)),
-        ColorSequenceKeypoint.new(0.45, Color3.fromRGB(255,255,255)),
-        ColorSequenceKeypoint.new(1.00, Color3.fromRGB(255,255,255)),
-    }),Transparency=NumberSequence.new({
-        NumberSequenceKeypoint.new(0.00, 0.92),
-        NumberSequenceKeypoint.new(0.45, 0.97),
-        NumberSequenceKeypoint.new(1.00, 1.00),
-    }),Parent=cardSheen})
+        ColorSequenceKeypoint.new(1.00, Color3.fromRGB(210,210,210)),
+    }), Parent = card })
     make("UIListLayout",{FillDirection=Enum.FillDirection.Vertical,SortOrder=Enum.SortOrder.LayoutOrder,Padding=UDim.new(0,10),Parent=card})
     local sub=setmetatable({_tab=tab,_window=tab._window,_pill=pill,_page=page,_card=card},SubTab)
     pill.MouseButton1Click:Connect(function() tab:_selectSub(sub) end)
@@ -4105,7 +4084,7 @@ end
 function SubTab:AddToggle(opts)
     opts=opts or {}; local value=opts.Default==true
     local row=newRow(self._card,30); rowLabels(row,opts.Name or "Toggle",opts.Description,44)
-    local pill=make("TextButton",{Text="",Size=UDim2.fromOffset(38,20),AnchorPoint=Vector2.new(1,0.5),Position=UDim2.new(1,0,0.5,0),BackgroundColor3=C.Badge,Parent=row})
+    local pill=make("TextButton",{Text="",Size=UDim2.fromOffset(38,20),AnchorPoint=Vector2.new(1,0.5),Position=UDim2.new(1,0,0.5,0),BackgroundColor3=C.Badge,BackgroundTransparency=0.08,Parent=row})
     circle(pill)
     -- Blue accent outline around the pill toggle: bright when on, dim when
     -- off, with a soft outer halo for depth (theme-aware via stroke)
@@ -4113,6 +4092,15 @@ function SubTab:AddToggle(opts)
     local pillHalo=stroke(pill,C.Accent); pillHalo.Thickness=4; pillHalo.Transparency=0.88
     local knob=make("Frame",{Size=UDim2.fromOffset(16,16),AnchorPoint=Vector2.new(0,0.5),Position=UDim2.new(0,2,0.5,0),BackgroundColor3=C.KnobOff,Parent=pill})
     circle(knob)
+    -- Small glossy top-light sheen on the knob for a rounder, softer,
+    -- less "flat/hard" look — the same glass language as the rest of the
+    -- library, scaled down to a tiny control.
+    local knobSheen=make("Frame",{Size=UDim2.fromScale(1,1),BackgroundColor3=Color3.fromRGB(254,254,254),Parent=knob}); circle(knobSheen)
+    make("UIGradient",{Rotation=90,Transparency=NumberSequence.new({
+        NumberSequenceKeypoint.new(0.00, 0.55),
+        NumberSequenceKeypoint.new(0.55, 0.85),
+        NumberSequenceKeypoint.new(1.00, 1.00),
+    }),Parent=knobSheen})
     local knobScale=make("UIScale",{Scale=1,Parent=knob})
     local BOUNCE=TweenInfo.new(0.28,Enum.EasingStyle.Back,Enum.EasingDirection.Out)
     local function render(a)
@@ -4159,6 +4147,9 @@ function SubTab:AddButton(opts)
         TweenService:Create(btnGlow,TWEEN,{Transparency=1}):Play()
     end)
     btn.MouseButton1Click:Connect(function() fire(opts.Callback) end)
+    local PRESS_TWEEN=TweenInfo.new(0.09,Enum.EasingStyle.Quad,Enum.EasingDirection.Out)
+    btn.MouseButton1Down:Connect(function() TweenService:Create(btnScale,PRESS_TWEEN,{Scale=0.95}):Play() end)
+    btn.MouseButton1Up:Connect(function() TweenService:Create(btnScale,TWEEN,{Scale=1.02}):Play() end)
     return btn
 end
 
@@ -4564,10 +4555,20 @@ function SubTab:AddSlider(opts)
     local row=newRow(self._card,32)
     make("TextLabel",{Text=opts.Name or "Slider",Font=Enum.Font.GothamMedium,TextSize=13,TextColor3=C.White,TextXAlignment=Enum.TextXAlignment.Left,BackgroundTransparency=1,Position=UDim2.fromOffset(0,0),Size=UDim2.new(0.6,0,0,14),Parent=row})
     local vl=make("TextLabel",{Text=tostring(value)..sf,Font=Enum.Font.Gotham,TextSize=11,TextColor3=C.TextDim,TextXAlignment=Enum.TextXAlignment.Right,BackgroundTransparency=1,Position=UDim2.fromOffset(0,1),Size=UDim2.new(1,0,0,13),Parent=row})
-    local track=make("Frame",{Position=UDim2.fromOffset(0,24),Size=UDim2.new(1,0,0,4),BackgroundColor3=C.TrackBg,Parent=row}); circle(track)
+    local track=make("Frame",{Position=UDim2.fromOffset(0,24),Size=UDim2.new(1,0,0,4),BackgroundColor3=C.TrackBg,BackgroundTransparency=0.1,Parent=row}); circle(track)
     local fill=make("Frame",{Size=UDim2.new(0,0,1,0),BackgroundColor3=C.Accent,Parent=track}); circle(fill)
+    make("UIGradient",{Rotation=90,Transparency=NumberSequence.new({
+        NumberSequenceKeypoint.new(0.00, 0.15),
+        NumberSequenceKeypoint.new(1.00, 0.4),
+    }),Parent=fill})
     local fillGlow=make("UIStroke",{Color=C.Accent,Thickness=2,Transparency=1,ApplyStrokeMode=Enum.ApplyStrokeMode.Border,Parent=fill})
     local knob=make("Frame",{Size=UDim2.fromOffset(12,12),AnchorPoint=Vector2.new(0.5,0.5),Position=UDim2.new(0,0,0.5,0),BackgroundColor3=C.White,ZIndex=2,Parent=track}); circle(knob); stroke(knob,C.Accent)
+    local knobSheen=make("Frame",{Size=UDim2.fromScale(1,1),BackgroundColor3=Color3.fromRGB(254,254,254),ZIndex=2,Parent=knob}); circle(knobSheen)
+    make("UIGradient",{Rotation=90,Transparency=NumberSequence.new({
+        NumberSequenceKeypoint.new(0.00, 0.0),
+        NumberSequenceKeypoint.new(0.6,  0.55),
+        NumberSequenceKeypoint.new(1.00, 0.75),
+    }),Parent=knobSheen})
     local knobScale=make("UIScale",{Scale=1,Parent=knob})
     local hit=make("TextButton",{Text="",BackgroundTransparency=1,Position=UDim2.new(0,-6,0,16),Size=UDim2.new(1,12,0,20),Parent=row})
     local function apply(v,a,fc)
@@ -4610,6 +4611,9 @@ function SubTab:AddColorPicker(opts)
 
     local swatch=make("TextButton",{Text="",Size=UDim2.fromOffset(34,18),AnchorPoint=Vector2.new(1,0.5),Position=UDim2.new(1,0,0.5,0),BackgroundColor3=value,Parent=row})
     corner(swatch,5);stroke(swatch,C.Border)
+    local swatchScale=make("UIScale",{Scale=1,Parent=swatch})
+    swatch.MouseEnter:Connect(function() TweenService:Create(swatchScale,TWEEN,{Scale=1.08}):Play() end)
+    swatch.MouseLeave:Connect(function() TweenService:Create(swatchScale,TWEEN,{Scale=1}):Play() end)
 
     local win=self._window; local sp=self._page; local tp=self._tab._page
     local PW=200
