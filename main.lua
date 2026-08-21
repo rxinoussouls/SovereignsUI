@@ -589,13 +589,17 @@ local function refreshEdgeGradient(g)
             ColorSequenceKeypoint.new(1, edge),
         })
     else
-        -- Travelling band: accent at rest, whitening at the crest. Animated by
-        -- sliding the gradient's Offset.
+        -- Travelling band: accent at rest, whitening at the crest, with a
+        -- soft lead-in/trailing tail either side of the bright head (a
+        -- gentle comet rather than a hard flash). Animated by sliding the
+        -- gradient's Offset.
         g.Color = ColorSequence.new({
             ColorSequenceKeypoint.new(0.00, edge),
+            ColorSequenceKeypoint.new(0.30, edge),
             ColorSequenceKeypoint.new(0.42, edge),
-            ColorSequenceKeypoint.new(0.50, Color3.fromRGB(255, 255, 255)),
+            ColorSequenceKeypoint.new(0.50, Color3.fromRGB(254, 254, 254)),
             ColorSequenceKeypoint.new(0.58, edge),
+            ColorSequenceKeypoint.new(0.72, edge),
             ColorSequenceKeypoint.new(1.00, edge),
         })
     end
@@ -2342,10 +2346,12 @@ function Library:CreateWindow(opts)
         }), Parent = mainSheen })
     end
 
-    -- Animated traveling outline
+    -- Animated traveling outline — a soft comet of light that sweeps
+    -- around the window border on a loop. This is what's visible tracing
+    -- the frame's edge.
     local mainGlowStroke = make("UIStroke", {
         Color = C.Accent,
-        Thickness = 1.6,
+        Thickness = 2,
         ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
         Transparency = 0,
         Parent = main,
@@ -2353,16 +2359,20 @@ function Library:CreateWindow(opts)
     local mainGlowGradient = make("UIGradient", {
         Color = ColorSequence.new({
             ColorSequenceKeypoint.new(0.00, C.Accent),
+            ColorSequenceKeypoint.new(0.30, C.Accent),
             ColorSequenceKeypoint.new(0.42, C.Accent),
-            ColorSequenceKeypoint.new(0.50, Color3.fromRGB(255, 255, 255)),
+            ColorSequenceKeypoint.new(0.50, Color3.fromRGB(254, 254, 254)),
             ColorSequenceKeypoint.new(0.58, C.Accent),
+            ColorSequenceKeypoint.new(0.72, C.Accent),
             ColorSequenceKeypoint.new(1.00, C.Accent),
         }),
         Transparency = NumberSequence.new({
             NumberSequenceKeypoint.new(0.00, 1.0),
-            NumberSequenceKeypoint.new(0.36, 1.0),
-            NumberSequenceKeypoint.new(0.50, 0.0),
-            NumberSequenceKeypoint.new(0.64, 1.0),
+            NumberSequenceKeypoint.new(0.28, 1.0),
+            NumberSequenceKeypoint.new(0.42, 0.55), -- soft lead-in glow
+            NumberSequenceKeypoint.new(0.50, 0.0),  -- bright comet head
+            NumberSequenceKeypoint.new(0.60, 0.5),  -- longer trailing tail
+            NumberSequenceKeypoint.new(0.78, 1.0),
             NumberSequenceKeypoint.new(1.00, 1.0),
         }),
         Parent = mainGlowStroke,
@@ -3897,7 +3907,7 @@ function Window:AddTab(opts)
     if headerIconElement:IsA("ImageLabel") then headerIconElement.ImageColor3=C.White
     elseif headerIconElement:IsA("TextLabel") then headerIconElement.TextColor3=C.White end
 
-    make("TextLabel",{Text=name,Font=Enum.Font.GothamBold,TextSize=14,TextColor3=C.White,TextXAlignment=Enum.TextXAlignment.Left,BackgroundTransparency=1,Position=UDim2.fromOffset(54,17),Size=UDim2.new(1,-70,0,14),Parent=header})
+    make("TextLabel",{Text=name,Font=Enum.Font.GothamBold,TextSize=19,TextColor3=C.White,TextXAlignment=Enum.TextXAlignment.Left,BackgroundTransparency=1,Position=UDim2.fromOffset(54,14),Size=UDim2.new(1,-70,0,22),Parent=header})
     make("TextLabel",{Text=opts.Subtitle or "",Font=Enum.Font.Gotham,TextSize=11,TextColor3=C.TextDim,TextXAlignment=Enum.TextXAlignment.Left,BackgroundTransparency=1,Position=UDim2.fromOffset(54,33),Size=UDim2.new(1,-70,0,12),Parent=header})
     local pillBar=make("Frame",{Position=UDim2.fromOffset(16,54),Size=UDim2.new(1,-32,0,24),BackgroundTransparency=1,ClipsDescendants=true,Parent=header})
     local pillScrollLeft=make("TextButton",{Text="‹",Font=Enum.Font.GothamBold,TextSize=18,TextColor3=C.TextGray,Size=UDim2.fromOffset(20,24),BackgroundColor3=C.WindowBg,Visible=false,Parent=pillBar})
@@ -4132,7 +4142,7 @@ function SubTab:AddButton(opts)
     opts=opts or {}
     local primary=opts.Primary==true or opts.Style=="primary"
     local btn=make("TextButton",{Text=opts.Name or "Button",Font=Enum.Font.GothamMedium,TextSize=12,TextColor3=primary and C.AccentText or C.TextGray,Size=UDim2.new(1,0,0,28),BackgroundColor3=primary and C.Accent or C.Element,Parent=self._card})
-    autoOrder(btn);corner(btn,8)
+    autoOrder(btn);corner(btn,6)
     if primary then btn.Font=Enum.Font.GothamBold end
     local btnScale=make("UIScale",{Scale=1,Parent=btn})
     local btnGlow=make("UIStroke",{Color=C.Accent,Thickness=1,Transparency=1,ApplyStrokeMode=Enum.ApplyStrokeMode.Border,Parent=btn})
@@ -4193,7 +4203,7 @@ function SubTab:AddKeybind(opts)
     if typeof(key)~="EnumItem" then key=nil end
     local row=newRow(self._card,30); rowLabels(row,opts.Name or "Keybind",opts.Description,80)
     local btn=make("TextButton",{Text=key and key.Name or "None",Font=Enum.Font.GothamMedium,TextSize=11,TextColor3=C.TextGray,Size=UDim2.fromOffset(70,22),AnchorPoint=Vector2.new(1,0.5),Position=UDim2.new(1,0,0.5,0),BackgroundColor3=C.Element,Parent=row})
-    corner(btn,8)
+    corner(btn,6)
     local listening=false; local conn
     local function setKey(k)
         if k~=nil and typeof(k)~="EnumItem" then return end
@@ -4234,7 +4244,7 @@ function SubTab:AddInput(opts)
     opts=opts or {}
     local row=newRow(self._card,30); rowLabels(row,opts.Name or "Input",opts.Description,120)
     local holder=make("Frame",{Size=UDim2.fromOffset(110,22),AnchorPoint=Vector2.new(1,0.5),Position=UDim2.new(1,0,0.5,0),BackgroundColor3=C.Element,Parent=row})
-    corner(holder,8)
+    corner(holder,6)
     local box=make("TextBox",{Text=opts.Default or "",PlaceholderText=opts.Placeholder or "...",PlaceholderColor3=C.Placeholder,Font=Enum.Font.Gotham,TextSize=12,TextColor3=C.TextGray,TextXAlignment=Enum.TextXAlignment.Left,BackgroundTransparency=1,ClearTextOnFocus=false,ClipsDescendants=true,Position=UDim2.fromOffset(8,0),Size=UDim2.new(1,-30,1,0),Parent=holder})
     inputIcon(holder)
     box.FocusLost:Connect(function(ep) fire(opts.Callback,box.Text,ep) end)
@@ -4252,7 +4262,7 @@ function SubTab:AddConfigManager(opts)
 
     local nameRow=newRow(self._card,30); rowLabels(nameRow,"Config Name",opts.Description or "Used for save / load / delete",0)
     local holder=make("Frame",{Size=UDim2.fromOffset(170,22),AnchorPoint=Vector2.new(1,0.5),Position=UDim2.new(1,0,0.5,0),BackgroundColor3=C.Element,Parent=nameRow})
-    corner(holder,8)
+    corner(holder,6)
     local box=make("TextBox",{Text="",PlaceholderText=opts.Placeholder or "default",PlaceholderColor3=C.Placeholder,Font=Enum.Font.Gotham,TextSize=12,TextColor3=C.TextGray,TextXAlignment=Enum.TextXAlignment.Left,BackgroundTransparency=1,ClearTextOnFocus=false,ClipsDescendants=true,Position=UDim2.fromOffset(8,0),Size=UDim2.new(1,-16,1,0),Parent=holder})
     inputIcon(holder)
 
@@ -4326,12 +4336,12 @@ function SubTab:AddDropdown(opts)
     local IH=22; local IP=2; local SH=26; local LW=160
     local row=newRow(self._card,30); rowLabels(row,opts.Name or "Dropdown",opts.Description,130)
     local btn=make("TextButton",{Text="",Size=UDim2.fromOffset(120,22),AnchorPoint=Vector2.new(1,0.5),Position=UDim2.new(1,0,0.5,0),BackgroundColor3=C.Element,Parent=row})
-    corner(btn,8)
+    corner(btn,6)
     local vl=make("TextLabel",{Text=tostring(value),Font=Enum.Font.Gotham,TextSize=12,TextColor3=C.TextGray,TextXAlignment=Enum.TextXAlignment.Left,TextTruncate=Enum.TextTruncate.AtEnd,BackgroundTransparency=1,Position=UDim2.fromOffset(8,0),Size=UDim2.new(1,-26,1,0),Parent=btn})
     sortIcon(btn)
     local win=self._window; local sp=self._page; local tp=self._tab._page
     local list=make("Frame",{Visible=false,Active=true,Position=UDim2.fromOffset(0,0),Size=UDim2.new(0,LW,0,0),BackgroundColor3=C.Element,BackgroundTransparency=0.08,ClipsDescendants=true,ZIndex=100,Parent=win.ScreenGui})
-    corner(list,10);local listGlow=stroke(list,C.Accent);listGlow.Transparency=0.55;listGlow.Thickness=1; table.insert(win._noDrag,list)
+    corner(list,8);stroke(list,C.Border); table.insert(win._noDrag,list)
     local sb; local fq=""
     if searchable then
         local sh=make("Frame",{Position=UDim2.fromOffset(4,4),Size=UDim2.new(1,-8,0,SH-4),BackgroundColor3=C.WindowBg,ZIndex=101,Parent=list}); corner(sh,4)
@@ -4419,12 +4429,12 @@ function SubTab:AddMultiDropdown(opts)
     if type(opts.Default)=="table" then for _,o in ipairs(opts.Default) do selected[o]=true end end
     local row=newRow(self._card,30); rowLabels(row,opts.Name or "Dropdown",opts.Description,130)
     local btn=make("TextButton",{Text="",Size=UDim2.fromOffset(120,22),AnchorPoint=Vector2.new(1,0.5),Position=UDim2.new(1,0,0.5,0),BackgroundColor3=C.Element,Parent=row})
-    corner(btn,8)
+    corner(btn,6)
     local vl=make("TextLabel",{Text="None",Font=Enum.Font.Gotham,TextSize=12,TextColor3=C.TextGray,TextXAlignment=Enum.TextXAlignment.Left,TextTruncate=Enum.TextTruncate.AtEnd,BackgroundTransparency=1,Position=UDim2.fromOffset(8,0),Size=UDim2.new(1,-26,1,0),Parent=btn})
     sortIcon(btn)
     local win=self._window; local sp=self._page; local tp=self._tab._page
     local list=make("Frame",{Visible=false,Active=true,Position=UDim2.fromOffset(0,0),Size=UDim2.new(0,LW,0,0),BackgroundColor3=C.Element,BackgroundTransparency=0.08,ClipsDescendants=true,ZIndex=100,Parent=win.ScreenGui})
-    corner(list,10);local listGlow=stroke(list,C.Accent);listGlow.Transparency=0.55;listGlow.Thickness=1; table.insert(win._noDrag,list)
+    corner(list,8);stroke(list,C.Border); table.insert(win._noDrag,list)
     local sb; local fq=""
     if searchable then
         local sh=make("Frame",{Position=UDim2.fromOffset(4,4),Size=UDim2.new(1,-8,0,SH-4),BackgroundColor3=C.WindowBg,ZIndex=101,Parent=list}); corner(sh,4)
@@ -4618,7 +4628,7 @@ function SubTab:AddColorPicker(opts)
     local win=self._window; local sp=self._page; local tp=self._tab._page
     local PW=200
     local panel=make("Frame",{Visible=false,Active=true,Size=UDim2.fromOffset(PW,0),BackgroundColor3=C.Element,BackgroundTransparency=0.08,ClipsDescendants=true,ZIndex=100,Parent=win.ScreenGui})
-    corner(panel,10);local panelGlow=stroke(panel,C.Accent);panelGlow.Transparency=0.55;panelGlow.Thickness=1; table.insert(win._noDrag,panel)
+    corner(panel,8);stroke(panel,C.Border); table.insert(win._noDrag,panel)
     local inner=make("Frame",{Position=UDim2.fromOffset(0,0),Size=UDim2.fromOffset(PW,168),BackgroundTransparency=1,ZIndex=101,Parent=panel})
     pad(inner,10,10,10,10)
 
