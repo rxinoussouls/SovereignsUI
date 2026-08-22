@@ -45,7 +45,7 @@ Basics:AddToggle({
 })
 
 Basics:AddDropdown({
-    Name = "Language", Options = { "English", "\u0e44\u0e17\u0e22", "\u65e5\u672c\u8a9e" }, Default = "English",
+    Name = "Language", Options = { "English", "ไทย", "日本語" }, Default = "English",
     Callback = function(value) print("Language:", value) end,
 })
 
@@ -94,7 +94,7 @@ Display:AddToggle({
 
 Display:AddDropdown({
     Name = "Theme", Options = {
-        "Dark", "Light", "OLED", "Black", "White", "Emerald", "Plant",
+        "Dark", "Light", "OLED", "BlackWhite", "Emerald", "Plant",
         "MonokaiPro", "Midnight", "Violet", "Rose", "Gold",
     }, Default = "Dark",
     Callback = function(theme) Library:SetTheme(theme) end,
@@ -116,6 +116,35 @@ Display:AddInput({
         if not Library:SetAccentColor(text) then
             Library:Notify({ Title = "Accent Color", Content = "Use a hex code like #A7C8F4.", Style = "warning" })
         end
+    end,
+})
+
+Display:AddSection("Window Border Light")
+
+Display:AddColorPicker({
+    Name = "Border Neon Color", Default = Color3.fromRGB(167, 200, 244),
+    Callback = function(color) Window:SetBorderGlow({ Color = color }) end,
+})
+
+Display:AddButton({
+    Name = "Follow Theme Accent",
+    Callback = function() Window:SetBorderGlow({ Color = nil }) end,
+})
+
+Display:AddSlider({
+    Name = "Border Light Speed", Min = 25, Max = 400, Default = 100, Suffix = "%",
+    Callback = function(pct) Window:SetBorderGlow({ Speed = pct / 100 }) end,
+})
+
+Display:AddDropdown({
+    Name = "Border Light Direction", Options = { "Clockwise", "Counter-clockwise" }, Default = "Clockwise",
+    Callback = function(dir) Window:SetBorderGlow({ Direction = (dir == "Clockwise") and "cw" or "ccw" }) end,
+})
+
+Display:AddDropdown({
+    Name = "Border Light Style", Options = { "Comet (single sweep)", "Wave (multi-band)" }, Default = "Comet (single sweep)",
+    Callback = function(style)
+        Window:SetBorderGlow({ Style = (style == "Wave (multi-band)") and "wave" or "comet" })
     end,
 })
 
