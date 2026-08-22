@@ -2130,6 +2130,7 @@ function Library:CreateWindow(opts)
     local loadingComplete       = not loadingEnabled
     local loadingMotionComplete = not loadingEnabled
     local loadingLayer, loadingContent, loadingLogoScale, loadingTitleScale, loadingProgressFill
+    local loadingGlowLayers = {}
     local loadingBlur, loadingSound
 
     if loadingEnabled then
@@ -2176,6 +2177,24 @@ function Library:CreateWindow(opts)
             AnchorPoint = Vector2.new(0.5, 0.5), Size = UDim2.fromOffset(80, 36),
             Position = UDim2.new(0.5, 0, 0.5, -20), BackgroundTransparency = 1, ZIndex = 510, Parent = loadingLayer,
         })
+        -- Soft ambient glow behind the title — a few oversized, very
+        -- low-opacity accent-tinted layers (Roblox has no native blur for
+        -- Frames, so stacking is the usual fake-blur trick) sitting just
+        -- behind the text so it reads as glowing rather than flat.
+        for i, layer in ipairs({
+            { grow = 90, alpha = 0.94 },
+            { grow = 50, alpha = 0.88 },
+            { grow = 20, alpha = 0.8 },
+        }) do
+            local glow = make("Frame", {
+                AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5),
+                Size = UDim2.new(1, layer.grow, 1, layer.grow),
+                BackgroundColor3 = ACC, BackgroundTransparency = 1,
+                ZIndex = 509, Parent = mainWrap,
+            })
+            corner(glow, 40)
+            table.insert(loadingGlowLayers, { inst = glow, alpha = layer.alpha })
+        end
         local tag = make("TextLabel", {
             Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, Text = loadingText,
             Font = Enum.Font.GothamBlack, TextScaled = true, TextColor3 = C.White,
@@ -2197,6 +2216,15 @@ function Library:CreateWindow(opts)
         make("UIGradient", { Transparency = NumberSequence.new({
             NumberSequenceKeypoint.new(0, 1), NumberSequenceKeypoint.new(0.5, 0), NumberSequenceKeypoint.new(1, 1),
         }), Parent = line })
+        -- A soft glow strip behind the line, same idea as the title's
+        -- halo — makes the divider read as a thin beam of light.
+        local lineGlow = make("Frame", {
+            Size = UDim2.new(1, 0, 0, 10), Position = UDim2.fromScale(0.5, 0.5), AnchorPoint = Vector2.new(0.5, 0.5),
+            BackgroundColor3 = ACC, BackgroundTransparency = 1, ZIndex = 509, Parent = line,
+        })
+        make("UIGradient", { Rotation = 90, Transparency = NumberSequence.new({
+            NumberSequenceKeypoint.new(0, 1), NumberSequenceKeypoint.new(0.5, 0.75), NumberSequenceKeypoint.new(1, 1),
+        }), Parent = lineGlow })
 
         local sub = make("TextLabel", {
             Size = UDim2.fromOffset(400, 22), Position = UDim2.new(0.5, 0, 0.5, 82), AnchorPoint = Vector2.new(0.5, 0.5),
@@ -2230,8 +2258,12 @@ function Library:CreateWindow(opts)
             leftLbl.Visible = false; rightLbl.Visible = false
             tag.TextTransparency = 0
             TweenService:Create(mainWrap, TweenInfo.new(0.22, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Size = UDim2.fromOffset(820, 140) }):Play()
+            for _, g in ipairs(loadingGlowLayers) do
+                TweenService:Create(g.inst, TweenInfo.new(0.5, Enum.EasingStyle.Quad), { BackgroundTransparency = g.alpha }):Play()
+            end
             task.wait(0.26)
             line.BackgroundTransparency = 0
+            lineGlow.BackgroundTransparency = 0.5
             TweenService:Create(line, TweenInfo.new(0.45, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), { Size = UDim2.fromOffset(380, 2) }):Play()
             TweenService:Create(sub, TweenInfo.new(0.4, Enum.EasingStyle.Quad), { TextTransparency = 0 }):Play()
             task.wait(0.16)
@@ -2286,35 +2318,67 @@ function Library:CreateWindow(opts)
         Visible = not loadingEnabled, ZIndex = 2, Parent = container,
     })
     corner(main, 12); stroke(main, C.Border)
+    -- Always-on ambient accent glow (not animated) so the border reads as
+    -- lit even between comet passes — the sweep below adds a brighter
+    -- highlight on top of this rather than being the only light source.
+    local mainAmbientGlow = make("UIStroke", { Color = C.Accent, Thickness = 1.5, Transparency = 0.55, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Parent = main })
+    mainAmbientGlow:SetAttribute("Theme_Color", "Accent")
 
     -- Animated traveling outline — a soft comet of light that sweeps
     -- around the window border on a loop. This is what's visible tracing
     -- the frame's edge.
     local mainGlowStroke = make("UIStroke", {
         Color = C.Accent,
-        Thickness = 2,
+        Thickness = 4,
         ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
         Transparency = 0,
         Parent = main,
     })
-    local mainGlowGradient = make("UIGradient", {
+    -- Wider, softer halo just outside the sharp comet — this is what makes
+    -- the sweep read as a glow instead of a thin bright line.
+    local mainGlowHalo = make("UIStroke", {
+        Color = C.Accent,
+        Thickness = 10,
+        ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+        Transparency = 0.4,
+        Parent = main,
+    })
+    local mainGlowHaloGradient = make("UIGradient", {
         Color = ColorSequence.new({
             ColorSequenceKeypoint.new(0.00, C.Accent),
-            ColorSequenceKeypoint.new(0.30, C.Accent),
-            ColorSequenceKeypoint.new(0.42, C.Accent),
+            ColorSequenceKeypoint.new(0.20, C.Accent),
             ColorSequenceKeypoint.new(0.50, Color3.fromRGB(254, 254, 254)),
-            ColorSequenceKeypoint.new(0.58, C.Accent),
-            ColorSequenceKeypoint.new(0.72, C.Accent),
+            ColorSequenceKeypoint.new(0.80, C.Accent),
             ColorSequenceKeypoint.new(1.00, C.Accent),
         }),
         Transparency = NumberSequence.new({
-            NumberSequenceKeypoint.new(0.00, 1.0),
-            NumberSequenceKeypoint.new(0.28, 1.0),
-            NumberSequenceKeypoint.new(0.42, 0.55), -- soft lead-in glow
+            NumberSequenceKeypoint.new(0.00, 0.85),
+            NumberSequenceKeypoint.new(0.20, 0.85),
+            NumberSequenceKeypoint.new(0.50, 0.1),
+            NumberSequenceKeypoint.new(0.80, 0.85),
+            NumberSequenceKeypoint.new(1.00, 0.85),
+        }),
+        Parent = mainGlowHalo,
+    })
+    mainGlowHaloGradient:SetAttribute("ThemeGradient_Edge", "Accent")
+    local mainGlowGradient = make("UIGradient", {
+        Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0.00, C.Accent),
+            ColorSequenceKeypoint.new(0.22, C.Accent),
+            ColorSequenceKeypoint.new(0.38, C.Accent),
+            ColorSequenceKeypoint.new(0.50, Color3.fromRGB(254, 254, 254)),
+            ColorSequenceKeypoint.new(0.62, C.Accent),
+            ColorSequenceKeypoint.new(0.78, C.Accent),
+            ColorSequenceKeypoint.new(1.00, C.Accent),
+        }),
+        Transparency = NumberSequence.new({
+            NumberSequenceKeypoint.new(0.00, 0.75),
+            NumberSequenceKeypoint.new(0.20, 0.75),
+            NumberSequenceKeypoint.new(0.38, 0.35), -- soft lead-in glow
             NumberSequenceKeypoint.new(0.50, 0.0),  -- bright comet head
-            NumberSequenceKeypoint.new(0.60, 0.5),  -- longer trailing tail
-            NumberSequenceKeypoint.new(0.78, 1.0),
-            NumberSequenceKeypoint.new(1.00, 1.0),
+            NumberSequenceKeypoint.new(0.64, 0.3),  -- longer trailing tail
+            NumberSequenceKeypoint.new(0.82, 0.75),
+            NumberSequenceKeypoint.new(1.00, 0.75),
         }),
         Parent = mainGlowStroke,
     })
@@ -2351,36 +2415,40 @@ function Library:CreateWindow(opts)
                 table.insert(pts, ColorSequenceKeypoint.new(a, base))
                 table.insert(pts, ColorSequenceKeypoint.new(center, white))
                 table.insert(pts, ColorSequenceKeypoint.new(b, base))
-                table.insert(trans, NumberSequenceKeypoint.new(a, 0.7))
+                table.insert(trans, NumberSequenceKeypoint.new(a, 0.55))
                 table.insert(trans, NumberSequenceKeypoint.new(center, 0.0))
-                table.insert(trans, NumberSequenceKeypoint.new(b, 0.7))
+                table.insert(trans, NumberSequenceKeypoint.new(b, 0.55))
             end
             table.insert(pts, 1, ColorSequenceKeypoint.new(0, base))
             table.insert(pts, ColorSequenceKeypoint.new(1, base))
-            table.insert(trans, 1, NumberSequenceKeypoint.new(0, 1))
-            table.insert(trans, NumberSequenceKeypoint.new(1, 1))
+            table.insert(trans, 1, NumberSequenceKeypoint.new(0, 0.75))
+            table.insert(trans, NumberSequenceKeypoint.new(1, 0.75))
             mainGlowGradient.Color = ColorSequence.new(pts)
             mainGlowGradient.Transparency = NumberSequence.new(trans)
         else
             mainGlowGradient.Color = ColorSequence.new({
                 ColorSequenceKeypoint.new(0.00, base),
-                ColorSequenceKeypoint.new(0.30, base),
-                ColorSequenceKeypoint.new(0.42, base),
+                ColorSequenceKeypoint.new(0.22, base),
+                ColorSequenceKeypoint.new(0.38, base),
                 ColorSequenceKeypoint.new(0.50, white),
-                ColorSequenceKeypoint.new(0.58, base),
-                ColorSequenceKeypoint.new(0.72, base),
+                ColorSequenceKeypoint.new(0.62, base),
+                ColorSequenceKeypoint.new(0.78, base),
                 ColorSequenceKeypoint.new(1.00, base),
             })
             mainGlowGradient.Transparency = NumberSequence.new({
-                NumberSequenceKeypoint.new(0.00, 1.0),
-                NumberSequenceKeypoint.new(0.28, 1.0),
-                NumberSequenceKeypoint.new(0.42, 0.55),
+                NumberSequenceKeypoint.new(0.00, 0.75),
+                NumberSequenceKeypoint.new(0.20, 0.75),
+                NumberSequenceKeypoint.new(0.38, 0.35),
                 NumberSequenceKeypoint.new(0.50, 0.0),
-                NumberSequenceKeypoint.new(0.60, 0.5),
-                NumberSequenceKeypoint.new(0.78, 1.0),
-                NumberSequenceKeypoint.new(1.00, 1.0),
+                NumberSequenceKeypoint.new(0.64, 0.3),
+                NumberSequenceKeypoint.new(0.82, 0.75),
+                NumberSequenceKeypoint.new(1.00, 0.75),
             })
         end
+        -- Keep the soft outer halo's colours (not just its Offset) in
+        -- sync with whatever the sharp comet is currently using.
+        mainGlowHaloGradient.Color = mainGlowGradient.Color
+        mainGlowHalo.Color = base
     end
     glowConn = RunService.RenderStepped:Connect(function(dt)
         if not main or not main.Parent then
@@ -2390,6 +2458,7 @@ function Library:CreateWindow(opts)
         glowT = (glowT + dt * 0.35 * glowSpeed * glowDirection) % 1
         local offset = Vector2.new(glowT * 2 - 1, 0)
         mainGlowGradient.Offset = offset
+        mainGlowHaloGradient.Offset = offset
         if logoGlowGradient then logoGlowGradient.Offset = offset end
         if brandShimmerGradient then brandShimmerGradient.Offset = offset end
     end)
@@ -2532,8 +2601,8 @@ function Library:CreateWindow(opts)
     -- needed outside this setup — only the pre-declared outer
     -- burgerButton/burgerScale/islandExpandThenSettle are assigned into.
     do
-    local ISLAND_EXPANDED = UDim2.fromOffset(232, 48)
-    local ISLAND_NORMAL   = UDim2.fromOffset(104, 38)
+    local ISLAND_EXPANDED = UDim2.fromOffset(238, 58)
+    local ISLAND_NORMAL   = UDim2.fromOffset(112, 52)
     local ISLAND_IDLE     = UDim2.fromOffset(64, 26)
     local ISLAND_IDLE_DELAY = 6 -- seconds of no interaction before it shrinks to idle
 
@@ -2544,7 +2613,7 @@ function Library:CreateWindow(opts)
         ClipsDescendants = true,
         Visible = false, ZIndex = 11, Parent = screenGui,
     })
-    corner(burgerButton, 19)
+    corner(burgerButton, 26)
     burgerScale = make("UIScale", { Scale = 1, Parent = burgerButton })
     local islandGlow = stroke(burgerButton, C.Accent); islandGlow.Thickness = 1.4; islandGlow.Transparency = 0.5
 
@@ -2552,15 +2621,15 @@ function Library:CreateWindow(opts)
     -- transition (including idle, which has a much smaller capsule) sets
     -- an exact matching size+position instead of leaving the previous
     -- stage's leftover size to get clipped oddly by the smaller capsule.
-    local ISLAND_LOGO_NORMAL_SIZE = UDim2.fromOffset(40, 40)
-    local ISLAND_LOGO_NORMAL_POS  = UDim2.fromOffset((104-40)/2, 19)
-    local ISLAND_LOGO_EXPANDED_POS = UDim2.fromOffset(10, 19)
+    local ISLAND_LOGO_NORMAL_SIZE = UDim2.fromOffset(48, 48)
+    local ISLAND_LOGO_NORMAL_POS  = UDim2.fromOffset((112-48)/2, 26)
+    local ISLAND_LOGO_EXPANDED_POS = UDim2.fromOffset(10, 26)
     local ISLAND_LOGO_IDLE_SIZE   = UDim2.fromOffset(16, 16)
     local ISLAND_LOGO_IDLE_POS    = UDim2.fromOffset((64-16)/2, 13)
 
     local islandLogo = make("ImageLabel",{Name="IslandLogo",Image=logoAsset,BackgroundTransparency=1,AnchorPoint=Vector2.new(0,0.5),Position=ISLAND_LOGO_NORMAL_POS,Size=ISLAND_LOGO_NORMAL_SIZE,ZIndex=13,ScaleType=Enum.ScaleType.Fit,Parent=burgerButton})
-    local islandTitle = make("TextLabel",{Name="IslandTitle",Text=(opts.Name or "Settings").." minimized",Font=Enum.Font.GothamBold,TextSize=12,TextColor3=C.White,TextTransparency=1,TextXAlignment=Enum.TextXAlignment.Left,TextTruncate=Enum.TextTruncate.AtEnd,BackgroundTransparency=1,Position=UDim2.fromOffset(54,9),Size=UDim2.new(1,-76,0,15),ZIndex=13,Parent=burgerButton})
-    local islandSub = make("TextLabel",{Name="IslandSub",Text="Tap to reopen",Font=Enum.Font.Gotham,TextSize=10,TextColor3=C.TextDim,TextTransparency=1,TextXAlignment=Enum.TextXAlignment.Left,TextTruncate=Enum.TextTruncate.AtEnd,BackgroundTransparency=1,Position=UDim2.fromOffset(54,25),Size=UDim2.new(1,-76,0,13),ZIndex=13,Parent=burgerButton})
+    local islandTitle = make("TextLabel",{Name="IslandTitle",Text=(opts.Name or "Settings").." minimized",Font=Enum.Font.GothamBold,TextSize=12,TextColor3=C.White,TextTransparency=1,TextXAlignment=Enum.TextXAlignment.Left,TextTruncate=Enum.TextTruncate.AtEnd,BackgroundTransparency=1,Position=UDim2.fromOffset(66,12),Size=UDim2.new(1,-88,0,17),ZIndex=13,Parent=burgerButton})
+    local islandSub = make("TextLabel",{Name="IslandSub",Text="Tap to reopen",Font=Enum.Font.Gotham,TextSize=10,TextColor3=C.TextDim,TextTransparency=1,TextXAlignment=Enum.TextXAlignment.Left,TextTruncate=Enum.TextTruncate.AtEnd,BackgroundTransparency=1,Position=UDim2.fromOffset(66,30),Size=UDim2.new(1,-88,0,14),ZIndex=13,Parent=burgerButton})
 
     -- Slow breathing pulse on the glow so the island reads as "alive"
     -- while sitting minimized.
@@ -2623,7 +2692,7 @@ function Library:CreateWindow(opts)
     -- the idle watchdog.
     islandExpandThenSettle = function()
         islandStage = "expanded"; islandLastInteract = os.clock()
-        burgerButton.Size = UDim2.fromOffset(52,38)
+        burgerButton.Size = UDim2.fromOffset(58,52)
         islandLogo.Size = ISLAND_LOGO_NORMAL_SIZE
         islandLogo.Position = ISLAND_LOGO_EXPANDED_POS
         islandLogo.ImageTransparency = 0
@@ -3688,11 +3757,12 @@ function Window:Notify(opts)
     -- active) with the severity colour used for the icon ring, border
     -- glow, and shimmer rail — never blended across the background.
     local card=make("CanvasGroup",{Name=style.Name.."Notification",AnchorPoint=Vector2.new(1,0),Position=UDim2.new(1,26,0,0),Size=UDim2.fromScale(1,1),BackgroundColor3=C.CardBg,BackgroundTransparency=0,GroupTransparency=1,ClipsDescendants=true,ZIndex=201,Parent=slot})
+    local cardScale=make("UIScale",{Scale=0.9,Parent=card})
     corner(card,18)
     -- Bigger, brighter glow ring around the whole card — this is the
     -- "light" that reads first, before the text.
-    local cardGlow=make("UIStroke",{Color=style.Color,Thickness=1.8,Transparency=0.2,ApplyStrokeMode=Enum.ApplyStrokeMode.Border,Parent=card})
-    local cardHalo=make("UIStroke",{Color=style.Color,Thickness=5,Transparency=0.82,ApplyStrokeMode=Enum.ApplyStrokeMode.Border,Parent=card})
+    local cardGlow=make("UIStroke",{Color=style.Color,Thickness=2.2,Transparency=0.1,ApplyStrokeMode=Enum.ApplyStrokeMode.Border,Parent=card})
+    local cardHalo=make("UIStroke",{Color=style.Color,Thickness=8,Transparency=0.72,ApplyStrokeMode=Enum.ApplyStrokeMode.Border,Parent=card})
     -- Slow shimmer sweep in the severity colour along the border, same
     -- traveling-light technique used elsewhere in the library.
     local shimmerGrad=make("UIGradient",{
@@ -3713,18 +3783,15 @@ function Window:Notify(opts)
         }),
         Parent=cardGlow,
     })
-    local nGlowT=0
-    local shimmerConn=RunService.RenderStepped:Connect(function(dt)
-        if not card or not card.Parent then if shimmerConn then shimmerConn:Disconnect() end return end
-        nGlowT=(nGlowT+dt*0.35)%1
-        shimmerGrad.Offset=Vector2.new(nGlowT*2-1,0)
-        cardHalo.Transparency=0.78 + math.sin(os.clock()*2.4)*0.1
-    end)
     -- Round icon chip with a spinning ring around it (same visual idea as
     -- the reference toast's animated loader ring) plus the severity icon
     -- sitting still in the middle.
     local iconHolder=make("Frame",{Position=UDim2.fromOffset(18,22),Size=UDim2.fromOffset(46,46),BackgroundColor3=style.Color,BackgroundTransparency=0.82,ZIndex=202,Parent=card})
     corner(iconHolder,15)
+    -- Extra soft light behind the icon chip specifically — a wider, very
+    -- transparent halo so the icon itself reads as the brightest point on
+    -- the card.
+    local iconHalo=make("UIStroke",{Color=style.Color,Thickness=6,Transparency=0.6,ApplyStrokeMode=Enum.ApplyStrokeMode.Border,Parent=iconHolder})
     local iconSpinRing=make("UIStroke",{Color=style.Color,Thickness=1.8,Transparency=0.25,ApplyStrokeMode=Enum.ApplyStrokeMode.Border,Parent=iconHolder})
     make("UIGradient",{Rotation=0,Color=ColorSequence.new({
         ColorSequenceKeypoint.new(0.00, style.Color),
@@ -3741,6 +3808,14 @@ function Window:Notify(opts)
         if g then g.Rotation=(g.Rotation + dt*90) % 360 end
     end)
     make("ImageLabel",{Image=style.Icon or ICONS.alert,ImageColor3=style.Color,BackgroundTransparency=1,AnchorPoint=Vector2.new(0.5,0.5),Position=UDim2.fromScale(0.5,0.5),Size=UDim2.fromOffset(23,23),ScaleType=Enum.ScaleType.Fit,ZIndex=203,Parent=iconHolder})
+    local nGlowT=0
+    local shimmerConn=RunService.RenderStepped:Connect(function(dt)
+        if not card or not card.Parent then if shimmerConn then shimmerConn:Disconnect() end return end
+        nGlowT=(nGlowT+dt*0.35)%1
+        shimmerGrad.Offset=Vector2.new(nGlowT*2-1,0)
+        cardHalo.Transparency=0.65 + math.sin(os.clock()*2.4)*0.15
+        iconHalo.Transparency=0.5 + math.sin(os.clock()*3.0)*0.2
+    end)
     make("TextLabel",{Text=title,Font=Enum.Font.GothamBold,TextSize=15,TextColor3=C.White,TextXAlignment=Enum.TextXAlignment.Left,TextTruncate=Enum.TextTruncate.AtEnd,BackgroundTransparency=1,Position=UDim2.fromOffset(74,18),Size=UDim2.new(1,-116,0,18),ZIndex=202,Parent=card})
     make("TextLabel",{Text=body,Font=Enum.Font.Gotham,TextSize=12,TextColor3=C.TextGray,TextXAlignment=Enum.TextXAlignment.Left,TextYAlignment=Enum.TextYAlignment.Top,TextWrapped=true,BackgroundTransparency=1,Position=UDim2.fromOffset(74,39),Size=UDim2.new(1,-86,0,34),ZIndex=202,Parent=card})
     -- "now" / "2m ago" style relative timestamp, refreshed once a second.
@@ -3781,6 +3856,7 @@ function Window:Notify(opts)
     xb.MouseLeave:Connect(function() tween(xb,{TextColor3=C.TextDim,BackgroundColor3=C.Element}) end)
     xb.MouseButton1Click:Connect(function() close("manual") end)
     TweenService:Create(card,NOTIFICATION_TWEEN,{Position=UDim2.new(1,0,0,0),GroupTransparency=0}):Play()
+    TweenService:Create(cardScale,TweenInfo.new(0.3,Enum.EasingStyle.Back,Enum.EasingDirection.Out),{Scale=1}):Play()
     if dur>0 then
         if rail then TweenService:Create(rail,TweenInfo.new(dur,Enum.EasingStyle.Linear),{Size=UDim2.fromScale(0,1)}):Play() end
         task.delay(dur,function() close("timeout") end)
