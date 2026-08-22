@@ -3816,6 +3816,7 @@ function Window:_selectTab(tab)
         tween(prev._hBtn,{BackgroundColor3=C.HotbarBg})
         tween(prev._hLabel,{TextColor3=C.TextGray})
         if prev._hDot then tween(prev._hDot,{BackgroundTransparency=1}) end
+        if prev._hDotGlow then tween(prev._hDotGlow,{Transparency=1}) end
         if prev._hGlowStroke then tween(prev._hGlowStroke,{Transparency=1}) end
         if prev._hIconElement then
             if prev._hIconElement:IsA("ImageLabel") then tween(prev._hIconElement,{ImageColor3=C.TextGray})
@@ -3826,6 +3827,7 @@ function Window:_selectTab(tab)
     tween(tab._hBtn,{BackgroundColor3=C.HotbarActive})
     tween(tab._hLabel,{TextColor3=C.White})
     if tab._hDot then tween(tab._hDot,{BackgroundTransparency=0}) end
+    if tab._hDotGlow then tween(tab._hDotGlow,{Transparency=0.55}) end
     if tab._hGlowStroke then tween(tab._hGlowStroke,{Transparency=0.25}) end
     if tab._hScale then
         TweenService:Create(tab._hScale,TweenInfo.new(0.22,Enum.EasingStyle.Back,Enum.EasingDirection.Out),{Scale=1.0}):Play()
@@ -3897,12 +3899,15 @@ function Window:AddTab(opts)
         Size=UDim2.new(0,0,1,0),LayoutOrder=2,ZIndex=6,Parent=hRow,
     })
 
+    -- Active-tab indicator: a glowing underline bar (not just a tiny dot)
+    -- so which tab is selected reads unambiguously at a glance.
     local hDot=make("Frame",{
-        AnchorPoint=Vector2.new(0.5,0), Position=UDim2.new(0.5,0,1,4),
-        Size=UDim2.fromOffset(4,4), BackgroundColor3=C.Accent,
+        AnchorPoint=Vector2.new(0.5,0), Position=UDim2.new(0.5,0,1,5),
+        Size=UDim2.fromOffset(22,3), BackgroundColor3=C.Accent,
         BackgroundTransparency=1, ZIndex=6, Parent=hBtn,
     })
-    circle(hDot)
+    corner(hDot,2)
+    local hDotGlow=stroke(hDot,C.Accent); hDotGlow.Thickness=3; hDotGlow.Transparency=1
 
     local page=make("Frame",{Size=UDim2.fromScale(1,1),BackgroundTransparency=1,Visible=false,Parent=self._content})
     local header=make("Frame",{Size=UDim2.new(1,0,0,88),BackgroundTransparency=1,Parent=page})
@@ -3928,7 +3933,7 @@ function Window:AddTab(opts)
 
     local tab=setmetatable({
         _window=win,
-        _hBtn=hBtn,_hLabel=hLabel,_hDot=hDot,_hIconElement=hIconElement,_hGlowStroke=hGlowStroke,_hScale=hBtnScale,
+        _hBtn=hBtn,_hLabel=hLabel,_hDot=hDot,_hDotGlow=hDotGlow,_hIconElement=hIconElement,_hGlowStroke=hGlowStroke,_hScale=hBtnScale,
         _page=page,_pillBar=pillBar,_pillScroll=pillScroll,_pillRow=pillRow,
         _pillScrollLeft=pillScrollLeft,_pillScrollRight=pillScrollRight,
         _pagesHolder=pagesHolder,
@@ -4088,7 +4093,16 @@ function Tab:AddSubTab(name)
 end
 
 local function newRow(card,h)
-    local r=make("Frame",{Size=UDim2.new(1,0,0,h),BackgroundTransparency=1,Parent=card}); autoOrder(r); return r
+    -- Each setting gets its own subtle background "chip" (instead of a
+    -- flat borderless row) so the label and its control read as one
+    -- grouped unit, and a hover highlight so the row you're looking at is
+    -- obvious — addresses rows like a right-jammed dropdown reading as
+    -- disconnected from its own label.
+    local r=make("Frame",{Size=UDim2.new(1,0,0,h),BackgroundColor3=C.Element,BackgroundTransparency=0.55,Parent=card})
+    autoOrder(r); corner(r,8)
+    r.MouseEnter:Connect(function() tween(r,{BackgroundTransparency=0.3}) end)
+    r.MouseLeave:Connect(function() tween(r,{BackgroundTransparency=0.55}) end)
+    return r
 end
 local function rowLabels(row,name,desc,rr)
     rr=rr or 0
