@@ -1776,21 +1776,10 @@ local function buildMusicPlayer(cfg)
     end
 
     -- ── Panel shell (compact, matches the profile / performance panels) ─────
-    -- Glass-style panel: translucent background + soft diagonal sheen + a
-    -- glowing accent border, so it reads like a modern acrylic flyout.
-    local musicPanel = make("CanvasGroup", { Name = "MusicPlayer", AnchorPoint = Vector2.new(1, 1), Position = musicClosedPos, Size = UDim2.fromOffset(musicWidth, fullHeight), BackgroundColor3 = C.CardBg, BackgroundTransparency = 0.1, GroupTransparency = 1, ClipsDescendants = true, ZIndex = 150, Parent = screenGui })
+    -- Player card panel with a subtle accent border glow.
+    local musicPanel = make("CanvasGroup", { Name = "MusicPlayer", AnchorPoint = Vector2.new(1, 1), Position = musicClosedPos, Size = UDim2.fromOffset(musicWidth, fullHeight), BackgroundColor3 = C.CardBg, BackgroundTransparency = 0, GroupTransparency = 1, ClipsDescendants = true, ZIndex = 150, Parent = screenGui })
     corner(musicPanel, 14)
     local musicPanelGlow = stroke(musicPanel, C.Accent); musicPanelGlow.Transparency = 0.7; musicPanelGlow.Thickness = 1
-    local musicSheen = make("Frame", { Name = "Sheen", Size = UDim2.fromScale(1, 1), BackgroundColor3 = Color3.fromRGB(254, 254, 254), ZIndex = 150, Parent = musicPanel })
-    make("UIGradient", { Rotation = 110, Color = ColorSequence.new({
-        ColorSequenceKeypoint.new(0.00, Color3.fromRGB(255, 255, 255)),
-        ColorSequenceKeypoint.new(0.45, Color3.fromRGB(255, 255, 255)),
-        ColorSequenceKeypoint.new(1.00, Color3.fromRGB(255, 255, 255)),
-    }), Transparency = NumberSequence.new({
-        NumberSequenceKeypoint.new(0.00, 0.90),
-        NumberSequenceKeypoint.new(0.45, 0.97),
-        NumberSequenceKeypoint.new(1.00, 1.00),
-    }), Parent = musicSheen })
 
     -- Header
     make("TextLabel", { Text = "MUSIC PLAYER", Font = Enum.Font.GothamBold, TextSize = 13, TextColor3 = C.White, TextXAlignment = Enum.TextXAlignment.Left, BackgroundTransparency = 1, Position = UDim2.fromOffset(16, 12), Size = UDim2.new(1, -70, 0, 18), ZIndex = 152, Parent = musicPanel })
@@ -2293,58 +2282,10 @@ function Library:CreateWindow(opts)
     local main = make("Frame", {
         Name = "Main", Size = windowSize,
         Position = UDim2.fromOffset(0, 0),
-        BackgroundColor3 = C.WindowBg, BackgroundTransparency = 0.1, ClipsDescendants = true,
+        BackgroundColor3 = C.WindowBg, BackgroundTransparency = 0, ClipsDescendants = true,
         Visible = not loadingEnabled, ZIndex = 2, Parent = container,
     })
     corner(main, 12); stroke(main, C.Border)
-    -- Extra glass decoration lives in its own `do...end` block — none of
-    -- these sub-parts are referenced again after setup, so scoping them
-    -- keeps CreateWindow's overall local-variable count (Lua caps a single
-    -- function at 200) well clear of the ceiling even as more features
-    -- get added over time.
-    do
-        -- A second, wider, near-transparent white ring just outside the
-        -- normal border — reads as a soft glass edge catching light,
-        -- rather than a hard outline.
-        local glassRing = make("UIStroke", { Color = Color3.fromRGB(255,255,255), Thickness = 2.5, Transparency = 0.9, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Parent = main })
-        glassRing.LineJoinMode = Enum.LineJoinMode.Round
-
-        -- Subtle top-to-bottom depth gradient. Kept as a translucent
-        -- overlay (rather than recoloring `main` itself) so anything
-        -- elsewhere that still assumes a flat WindowBg colour keeps
-        -- matching it exactly.
-        local mainDepth = make("Frame", {
-            Name = "DepthGradient", Size = UDim2.fromScale(1, 1),
-            BackgroundColor3 = Color3.fromRGB(254, 254, 254), BackgroundTransparency = 0.88,
-            Parent = main,
-        })
-        corner(mainDepth, 12)
-        local mainDepthGrad = make("UIGradient", { Rotation = 90, Parent = mainDepth })
-        mainDepthGrad:SetAttribute("ThemeGradient_Top", "CardBg")
-        mainDepthGrad:SetAttribute("ThemeGradient_Bottom", "WindowBg")
-        mainDepthGrad:SetAttribute("ThemeGradient_Strength", 1)
-        refreshVerticalFade(mainDepthGrad)
-
-        -- Diagonal glass sheen streak — the same recipe used everywhere
-        -- else in the library (hotbar, island, cards) but full-window
-        -- here, so the whole frame reads as a pane of glass, not just a
-        -- flat panel.
-        local mainSheen = make("Frame", { Name = "GlassSheen", Size = UDim2.fromScale(1,1), BackgroundColor3 = Color3.fromRGB(254,254,254), Parent = main })
-        corner(mainSheen, 12)
-        make("UIGradient", { Rotation = 115, Color = ColorSequence.new({
-            ColorSequenceKeypoint.new(0.00, Color3.fromRGB(255,255,255)),
-            ColorSequenceKeypoint.new(0.30, Color3.fromRGB(255,255,255)),
-            ColorSequenceKeypoint.new(0.50, Color3.fromRGB(255,255,255)),
-            ColorSequenceKeypoint.new(0.70, Color3.fromRGB(255,255,255)),
-            ColorSequenceKeypoint.new(1.00, Color3.fromRGB(255,255,255)),
-        }), Transparency = NumberSequence.new({
-            NumberSequenceKeypoint.new(0.00, 0.97),
-            NumberSequenceKeypoint.new(0.30, 0.90),
-            NumberSequenceKeypoint.new(0.50, 0.965),
-            NumberSequenceKeypoint.new(0.70, 0.90),
-            NumberSequenceKeypoint.new(1.00, 0.97),
-        }), Parent = mainSheen })
-    end
 
     -- Animated traveling outline — a soft comet of light that sweeps
     -- around the window border on a loop. This is what's visible tracing
@@ -2385,12 +2326,68 @@ function Library:CreateWindow(opts)
     local brandShimmerGradient
     local glowT = 0
     local glowConn
+    -- Border-glow settings, adjustable live via Window:SetBorderGlow() —
+    -- color (nil = follow the theme's Accent), speed multiplier, spin
+    -- direction, and single-comet vs multi-band "wave" style. Declared as
+    -- plain locals (not stored only on the window table) so the
+    -- RenderStepped loop below can close over and read them directly.
+    local glowSpeed = 1
+    local glowDirection = 1
+    local glowColorOverride = nil
+    local glowStyle = "comet"
+    local function rebuildGlowGradient()
+        local base = glowColorOverride or C.Accent
+        local white = Color3.fromRGB(254, 254, 254)
+        if glowStyle == "wave" then
+            -- Several evenly-spaced bright bands traveling together, so
+            -- the whole border shimmers like a wave instead of one comet.
+            local bands = 3
+            local pts, trans = {}, {}
+            for i = 0, bands - 1 do
+                local center = i / bands
+                local halfGap = (1 / bands) * 0.32
+                local a = math.max(center - halfGap, 0.0001)
+                local b = math.min(center + halfGap, 0.9999)
+                table.insert(pts, ColorSequenceKeypoint.new(a, base))
+                table.insert(pts, ColorSequenceKeypoint.new(center, white))
+                table.insert(pts, ColorSequenceKeypoint.new(b, base))
+                table.insert(trans, NumberSequenceKeypoint.new(a, 0.7))
+                table.insert(trans, NumberSequenceKeypoint.new(center, 0.0))
+                table.insert(trans, NumberSequenceKeypoint.new(b, 0.7))
+            end
+            table.insert(pts, 1, ColorSequenceKeypoint.new(0, base))
+            table.insert(pts, ColorSequenceKeypoint.new(1, base))
+            table.insert(trans, 1, NumberSequenceKeypoint.new(0, 1))
+            table.insert(trans, NumberSequenceKeypoint.new(1, 1))
+            mainGlowGradient.Color = ColorSequence.new(pts)
+            mainGlowGradient.Transparency = NumberSequence.new(trans)
+        else
+            mainGlowGradient.Color = ColorSequence.new({
+                ColorSequenceKeypoint.new(0.00, base),
+                ColorSequenceKeypoint.new(0.30, base),
+                ColorSequenceKeypoint.new(0.42, base),
+                ColorSequenceKeypoint.new(0.50, white),
+                ColorSequenceKeypoint.new(0.58, base),
+                ColorSequenceKeypoint.new(0.72, base),
+                ColorSequenceKeypoint.new(1.00, base),
+            })
+            mainGlowGradient.Transparency = NumberSequence.new({
+                NumberSequenceKeypoint.new(0.00, 1.0),
+                NumberSequenceKeypoint.new(0.28, 1.0),
+                NumberSequenceKeypoint.new(0.42, 0.55),
+                NumberSequenceKeypoint.new(0.50, 0.0),
+                NumberSequenceKeypoint.new(0.60, 0.5),
+                NumberSequenceKeypoint.new(0.78, 1.0),
+                NumberSequenceKeypoint.new(1.00, 1.0),
+            })
+        end
+    end
     glowConn = RunService.RenderStepped:Connect(function(dt)
         if not main or not main.Parent then
             if glowConn then glowConn:Disconnect(); glowConn = nil end
             return
         end
-        glowT = (glowT + dt * 0.35) % 1
+        glowT = (glowT + dt * 0.35 * glowSpeed * glowDirection) % 1
         local offset = Vector2.new(glowT * 2 - 1, 0)
         mainGlowGradient.Offset = offset
         if logoGlowGradient then logoGlowGradient.Offset = offset end
@@ -2405,26 +2402,12 @@ function Library:CreateWindow(opts)
         Size = UDim2.fromOffset(0, HOTBAR_HEIGHT),
         AutomaticSize = Enum.AutomaticSize.X,
         BackgroundColor3 = C.HotbarBg,
-        BackgroundTransparency = 0.14,
+        BackgroundTransparency = 0,
         ClipsDescendants = false,
         Visible = not loadingEnabled,
         ZIndex = 3, Parent = container,
     })
     corner(hotbar, 11)
-    -- Soft diagonal glass sheen, same recipe as the player card / music
-    -- panel: a white overlay with a gradient transparency ramp.
-    local hotbarSheen = make("Frame", { Name = "Sheen", Size = UDim2.fromScale(1,1), BackgroundColor3 = Color3.fromRGB(254,254,254), ZIndex = 3, Parent = hotbar })
-    corner(hotbarSheen, 11)
-    make("UIGradient", { Rotation = 100, Color = ColorSequence.new({
-        ColorSequenceKeypoint.new(0.00, Color3.fromRGB(255,255,255)),
-        ColorSequenceKeypoint.new(0.45, Color3.fromRGB(255,255,255)),
-        ColorSequenceKeypoint.new(1.00, Color3.fromRGB(255,255,255)),
-    }), Transparency = NumberSequence.new({
-        NumberSequenceKeypoint.new(0.00, 0.90),
-        NumberSequenceKeypoint.new(0.45, 0.97),
-        NumberSequenceKeypoint.new(1.00, 1.00),
-    }), Parent = hotbarSheen })
-    hotbarSheen.ZIndex = 3
     -- Border is white and driven entirely by the gradient below: accent at the
     -- left and right ends, normal border colour through the middle. The
     -- Theme_Color tag has to go, otherwise SetTheme would repaint the white
@@ -2557,28 +2540,25 @@ function Library:CreateWindow(opts)
     burgerButton = make("TextButton", {
         Name = "Island", Text = "", AutoButtonColor = false,
         AnchorPoint = Vector2.new(0.5,0), Position = UDim2.new(0.5,0,0,10),
-        Size = ISLAND_NORMAL, BackgroundColor3 = C.CardBg, BackgroundTransparency = 0.16,
+        Size = ISLAND_NORMAL, BackgroundColor3 = C.CardBg, BackgroundTransparency = 0,
         ClipsDescendants = true,
         Visible = false, ZIndex = 11, Parent = screenGui,
     })
     corner(burgerButton, 19)
     burgerScale = make("UIScale", { Scale = 1, Parent = burgerButton })
     local islandGlow = stroke(burgerButton, C.Accent); islandGlow.Thickness = 1.4; islandGlow.Transparency = 0.5
-    -- Diagonal glass sheen, same recipe used on the player card / music
-    -- panel / hotbar — a translucent white wash that fades across the pill.
-    local islandSheen = make("Frame", { Name = "Sheen", Size = UDim2.fromScale(1,1), BackgroundColor3 = Color3.fromRGB(254,254,254), ZIndex = 11, Parent = burgerButton })
-    corner(islandSheen, 19)
-    make("UIGradient", { Rotation = 110, Color = ColorSequence.new({
-        ColorSequenceKeypoint.new(0.00, Color3.fromRGB(255,255,255)),
-        ColorSequenceKeypoint.new(0.45, Color3.fromRGB(255,255,255)),
-        ColorSequenceKeypoint.new(1.00, Color3.fromRGB(255,255,255)),
-    }), Transparency = NumberSequence.new({
-        NumberSequenceKeypoint.new(0.00, 0.88),
-        NumberSequenceKeypoint.new(0.45, 0.96),
-        NumberSequenceKeypoint.new(1.00, 1.00),
-    }), Parent = islandSheen })
 
-    local islandLogo = make("ImageLabel",{Name="IslandLogo",Image=logoAsset,BackgroundTransparency=1,AnchorPoint=Vector2.new(0,0.5),Position=UDim2.fromOffset(34,19),Size=UDim2.fromOffset(36,36),ZIndex=13,ScaleType=Enum.ScaleType.Fit,Parent=burgerButton})
+    -- Logo sizes/positions per stage, computed up front so every state
+    -- transition (including idle, which has a much smaller capsule) sets
+    -- an exact matching size+position instead of leaving the previous
+    -- stage's leftover size to get clipped oddly by the smaller capsule.
+    local ISLAND_LOGO_NORMAL_SIZE = UDim2.fromOffset(40, 40)
+    local ISLAND_LOGO_NORMAL_POS  = UDim2.fromOffset((104-40)/2, 19)
+    local ISLAND_LOGO_EXPANDED_POS = UDim2.fromOffset(10, 19)
+    local ISLAND_LOGO_IDLE_SIZE   = UDim2.fromOffset(16, 16)
+    local ISLAND_LOGO_IDLE_POS    = UDim2.fromOffset((64-16)/2, 13)
+
+    local islandLogo = make("ImageLabel",{Name="IslandLogo",Image=logoAsset,BackgroundTransparency=1,AnchorPoint=Vector2.new(0,0.5),Position=ISLAND_LOGO_NORMAL_POS,Size=ISLAND_LOGO_NORMAL_SIZE,ZIndex=13,ScaleType=Enum.ScaleType.Fit,Parent=burgerButton})
     local islandTitle = make("TextLabel",{Name="IslandTitle",Text=(opts.Name or "Settings").." minimized",Font=Enum.Font.GothamBold,TextSize=12,TextColor3=C.White,TextTransparency=1,TextXAlignment=Enum.TextXAlignment.Left,TextTruncate=Enum.TextTruncate.AtEnd,BackgroundTransparency=1,Position=UDim2.fromOffset(54,9),Size=UDim2.new(1,-76,0,15),ZIndex=13,Parent=burgerButton})
     local islandSub = make("TextLabel",{Name="IslandSub",Text="Tap to reopen",Font=Enum.Font.Gotham,TextSize=10,TextColor3=C.TextDim,TextTransparency=1,TextXAlignment=Enum.TextXAlignment.Left,TextTruncate=Enum.TextTruncate.AtEnd,BackgroundTransparency=1,Position=UDim2.fromOffset(54,25),Size=UDim2.new(1,-76,0,13),ZIndex=13,Parent=burgerButton})
 
@@ -2601,14 +2581,20 @@ function Library:CreateWindow(opts)
         islandStage = "normal"
         local ti = instant and TweenInfo.new(0.001) or ISL_TWEEN
         TweenService:Create(burgerButton, ti, { Size = ISLAND_NORMAL }):Play()
-        TweenService:Create(islandLogo, ti, { Position = UDim2.fromOffset(34,19), ImageTransparency = 0 }):Play()
+        TweenService:Create(islandLogo, ti, { Position = ISLAND_LOGO_NORMAL_POS, Size = ISLAND_LOGO_NORMAL_SIZE, ImageTransparency = 0 }):Play()
         tween(islandTitle, { TextTransparency = 1 }); tween(islandSub, { TextTransparency = 1 })
     end
     local function islandGoIdle()
         if islandStage ~= "normal" then return end
         islandStage = "idle"
-        TweenService:Create(burgerButton, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut), { Size = ISLAND_IDLE }):Play()
-        tween(islandLogo, { ImageTransparency = 0.55 })
+        local ti = TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut)
+        TweenService:Create(burgerButton, ti, { Size = ISLAND_IDLE }):Play()
+        -- Shrink AND recenter the logo to fit the much smaller idle
+        -- capsule while it fades — previously this only faded the logo's
+        -- transparency and left it at full (normal-stage) size/position,
+        -- which overflowed the idle capsule and got clipped into a messy
+        -- sliver once burgerButton's ClipsDescendants cut it off.
+        TweenService:Create(islandLogo, ti, { Position = ISLAND_LOGO_IDLE_POS, Size = ISLAND_LOGO_IDLE_SIZE, ImageTransparency = 0.35 }):Play()
     end
     local function islandWatchdog()
         if islandWatchdogRunning then return end
@@ -2627,8 +2613,9 @@ function Library:CreateWindow(opts)
         islandLastInteract = os.clock()
         if islandStage == "idle" then
             islandStage = "normal"
-            TweenService:Create(burgerButton, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Size = ISLAND_NORMAL }):Play()
-            tween(islandLogo, { ImageTransparency = 0 })
+            local ti = TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+            TweenService:Create(burgerButton, ti, { Size = ISLAND_NORMAL }):Play()
+            TweenService:Create(islandLogo, ti, { Position = ISLAND_LOGO_NORMAL_POS, Size = ISLAND_LOGO_NORMAL_SIZE, ImageTransparency = 0 }):Play()
         end
     end
     -- Called from setMinimized(): pop open EXPANDED with a status line,
@@ -2637,7 +2624,9 @@ function Library:CreateWindow(opts)
     islandExpandThenSettle = function()
         islandStage = "expanded"; islandLastInteract = os.clock()
         burgerButton.Size = UDim2.fromOffset(52,38)
-        islandLogo.Position = UDim2.fromOffset(10,19)
+        islandLogo.Size = ISLAND_LOGO_NORMAL_SIZE
+        islandLogo.Position = ISLAND_LOGO_EXPANDED_POS
+        islandLogo.ImageTransparency = 0
         TweenService:Create(burgerButton, ISL_TWEEN, { Size = ISLAND_EXPANDED }):Play()
         tween(islandTitle, { TextTransparency = 0 }); tween(islandSub, { TextTransparency = 0 })
         task.delay(1.6, function()
@@ -2729,20 +2718,10 @@ function Library:CreateWindow(opts)
     -- again) to keep CreateWindow's local-variable count down.
     do
         local lp = Players.LocalPlayer
-        local pcard = make("Frame",{Name="PlayerCard",Position=UDim2.fromOffset(12,88),Size=UDim2.new(1,-24,0,60),BackgroundColor3=C.CardBg,BackgroundTransparency=0.16,Parent=sidebar})
+        local pcard = make("Frame",{Name="PlayerCard",Position=UDim2.fromOffset(12,88),Size=UDim2.new(1,-24,0,60),BackgroundColor3=C.CardBg,BackgroundTransparency=0,Parent=sidebar})
         corner(pcard,12)
         local pcardGlow = stroke(pcard,C.Accent); pcardGlow.Transparency=0.65; pcardGlow.Thickness=1.2
         local pcardScale = make("UIScale",{Scale=1,Parent=pcard})
-        local pcardSheen = make("Frame",{Size=UDim2.fromScale(1,1),BackgroundColor3=Color3.fromRGB(254,254,254),ZIndex=0,Parent=pcard}); corner(pcardSheen,12)
-        make("UIGradient",{Rotation=115,Color=ColorSequence.new({
-            ColorSequenceKeypoint.new(0.00, Color3.fromRGB(255,255,255)),
-            ColorSequenceKeypoint.new(0.40, Color3.fromRGB(255,255,255)),
-            ColorSequenceKeypoint.new(1.00, Color3.fromRGB(255,255,255)),
-        }),Transparency=NumberSequence.new({
-            NumberSequenceKeypoint.new(0.00, 0.86),
-            NumberSequenceKeypoint.new(0.40, 0.96),
-            NumberSequenceKeypoint.new(1.00, 1.00),
-        }),Parent=pcardSheen})
         local avH = make("Frame",{Position=UDim2.fromOffset(9,9),Size=UDim2.fromOffset(42,42),BackgroundColor3=C.Element,Parent=pcard}); corner(avH,10)
         local avImg = make("ImageLabel",{Image="rbxthumb://type=AvatarHeadShot&id="..lp.UserId.."&w=150&h=150",BackgroundTransparency=1,Size=UDim2.fromScale(1,1),ScaleType=Enum.ScaleType.Crop,Parent=avH}); corner(avImg,10)
         local avRing = stroke(avH,C.Accent); avRing.Transparency=0.3; avRing.Thickness=1.4
@@ -2895,7 +2874,7 @@ function Library:CreateWindow(opts)
     -- ── NOTIFICATIONS ─────────────────────────────────────────────────────
     local notificationHolder = make("Frame",{
         Name="Notifications",AnchorPoint=Vector2.new(1,1),
-        Position=UDim2.new(1,-16,1,-16),Size=UDim2.new(0,360,1,-32),
+        Position=UDim2.new(1,-16,1,-16),Size=UDim2.new(0,390,1,-32),
         BackgroundTransparency=1,ZIndex=200,Parent=screenGui,
     })
     make("UIListLayout",{FillDirection=Enum.FillDirection.Vertical,HorizontalAlignment=Enum.HorizontalAlignment.Right,VerticalAlignment=Enum.VerticalAlignment.Bottom,SortOrder=Enum.SortOrder.LayoutOrder,Padding=UDim.new(0,8),Parent=notificationHolder})
@@ -3462,6 +3441,32 @@ function Library:CreateWindow(opts)
         _connections={}, _noDrag=noDrag, _tabs={}, _activeTab=nil,
         _containerScale=containerScale, _uiVisible=true, _toggleKey=toggleKey,
         _loadingBlur=loadingBlur, _destroyed=false,
+        _setBorderGlow=function(opts)
+            opts = opts or {}
+            if opts.Color ~= nil then
+                local c
+                if typeof(opts.Color) == "Color3" then c = opts.Color
+                elseif type(opts.Color) == "string" then
+                    local hex = opts.Color:gsub("#", "")
+                    if #hex == 6 and hex:match("^%x+$") then
+                        c = Color3.fromRGB(tonumber(hex:sub(1,2),16), tonumber(hex:sub(3,4),16), tonumber(hex:sub(5,6),16))
+                    end
+                end
+                glowColorOverride = c
+                if c then mainGlowGradient:SetAttribute("ThemeGradient_Edge", nil)
+                else mainGlowGradient:SetAttribute("ThemeGradient_Edge", "Accent") end
+            end
+            if opts.Speed ~= nil then glowSpeed = math.clamp(tonumber(opts.Speed) or 1, 0.05, 8) end
+            if opts.Direction ~= nil then
+                local d = opts.Direction
+                if d == "cw" or d == 1 or d == "clockwise" then glowDirection = 1
+                elseif d == "ccw" or d == -1 or d == "counterclockwise" then glowDirection = -1 end
+            end
+            if opts.Style ~= nil then
+                glowStyle = (opts.Style == "wave") and "wave" or "comet"
+            end
+            rebuildGlowGradient()
+        end,
     }, Window)
     windowRef.Notify=function(s,m) return Window.Notify(windowRef,s==windowRef and m or s) end
     windowRef.Notification=windowRef.Notify
@@ -3641,6 +3646,16 @@ end
 -- WINDOW METHODS
 -- ════════════════════════════════════════════════════════════════════════════
 function Window:SetVisible(v) self.ScreenGui.Enabled = v==true end
+
+-- Customize the traveling-light border glow live: { Color = Color3 or
+-- "#RRGGBB" (nil/omit to follow the theme's Accent again), Speed = number
+-- multiplier (1 = default, 2 = twice as fast, 0.5 = half speed),
+-- Direction = "cw"/"ccw", Style = "comet" (single sweep) or "wave"
+-- (several bands traveling together). Any field can be omitted to leave
+-- that setting unchanged.
+function Window:SetBorderGlow(opts)
+    if self._setBorderGlow then self._setBorderGlow(opts) end
+end
 function Window:Toggle() self.ScreenGui.Enabled = not self.ScreenGui.Enabled; return self.ScreenGui.Enabled end
 function Window:SetUIVisible(v)
     if self._setUIVisible then return self._setUIVisible(v==true) end
@@ -3668,27 +3683,16 @@ function Window:Notify(opts)
     local title=tostring(opts.Title or style.Name)
     local body =tostring(opts.Content or opts.Description or opts.Message or "Notification")
     local createdAt=os.time()
-    local slot=make("Frame",{Name="NotificationSlot",Size=UDim2.new(1,0,0,78),BackgroundTransparency=1,LayoutOrder=self._notificationOrder,ZIndex=200,Parent=holder})
-    -- Pill-rounded, heavily-glassed card: translucent CardBg (always
-    -- matches whatever theme is active) + a diagonal sheen overlay, with
-    -- the severity colour used only for the icon ring, glow and rail —
-    -- never blended across the whole background.
-    local card=make("CanvasGroup",{Name=style.Name.."Notification",AnchorPoint=Vector2.new(1,0),Position=UDim2.new(1,26,0,0),Size=UDim2.fromScale(1,1),BackgroundColor3=C.CardBg,BackgroundTransparency=0.22,GroupTransparency=1,ClipsDescendants=true,ZIndex=201,Parent=slot})
+    local slot=make("Frame",{Name="NotificationSlot",Size=UDim2.new(1,0,0,88),BackgroundTransparency=1,LayoutOrder=self._notificationOrder,ZIndex=200,Parent=holder})
+    -- Rounded card, opaque CardBg (always matches whatever theme is
+    -- active) with the severity colour used for the icon ring, border
+    -- glow, and shimmer rail — never blended across the background.
+    local card=make("CanvasGroup",{Name=style.Name.."Notification",AnchorPoint=Vector2.new(1,0),Position=UDim2.new(1,26,0,0),Size=UDim2.fromScale(1,1),BackgroundColor3=C.CardBg,BackgroundTransparency=0,GroupTransparency=1,ClipsDescendants=true,ZIndex=201,Parent=slot})
     corner(card,18)
-    local cardGlow=make("UIStroke",{Color=style.Color,Thickness=1.2,Transparency=0.35,ApplyStrokeMode=Enum.ApplyStrokeMode.Border,Parent=card})
-    -- Diagonal glass sheen (same recipe as the rest of the library's
-    -- glass surfaces) sitting under the content.
-    local notifSheen=make("Frame",{Name="Sheen",Size=UDim2.fromScale(1,1),BackgroundColor3=Color3.fromRGB(254,254,254),ZIndex=201,Parent=card})
-    corner(notifSheen,18)
-    make("UIGradient",{Rotation=105,Color=ColorSequence.new({
-        ColorSequenceKeypoint.new(0.00, Color3.fromRGB(255,255,255)),
-        ColorSequenceKeypoint.new(0.45, Color3.fromRGB(255,255,255)),
-        ColorSequenceKeypoint.new(1.00, Color3.fromRGB(255,255,255)),
-    }),Transparency=NumberSequence.new({
-        NumberSequenceKeypoint.new(0.00, 0.88),
-        NumberSequenceKeypoint.new(0.45, 0.96),
-        NumberSequenceKeypoint.new(1.00, 1.00),
-    }),Parent=notifSheen})
+    -- Bigger, brighter glow ring around the whole card — this is the
+    -- "light" that reads first, before the text.
+    local cardGlow=make("UIStroke",{Color=style.Color,Thickness=1.8,Transparency=0.2,ApplyStrokeMode=Enum.ApplyStrokeMode.Border,Parent=card})
+    local cardHalo=make("UIStroke",{Color=style.Color,Thickness=5,Transparency=0.82,ApplyStrokeMode=Enum.ApplyStrokeMode.Border,Parent=card})
     -- Slow shimmer sweep in the severity colour along the border, same
     -- traveling-light technique used elsewhere in the library.
     local shimmerGrad=make("UIGradient",{
@@ -3714,32 +3718,33 @@ function Window:Notify(opts)
         if not card or not card.Parent then if shimmerConn then shimmerConn:Disconnect() end return end
         nGlowT=(nGlowT+dt*0.35)%1
         shimmerGrad.Offset=Vector2.new(nGlowT*2-1,0)
+        cardHalo.Transparency=0.78 + math.sin(os.clock()*2.4)*0.1
     end)
     -- Round icon chip with a spinning ring around it (same visual idea as
     -- the reference toast's animated loader ring) plus the severity icon
     -- sitting still in the middle.
-    local iconHolder=make("Frame",{Position=UDim2.fromOffset(16,19),Size=UDim2.fromOffset(40,40),BackgroundColor3=style.Color,BackgroundTransparency=0.82,ZIndex=202,Parent=card})
-    corner(iconHolder,13)
-    local iconSpinRing=make("UIStroke",{Color=style.Color,Thickness=1.6,Transparency=0.3,ApplyStrokeMode=Enum.ApplyStrokeMode.Border,Parent=iconHolder})
+    local iconHolder=make("Frame",{Position=UDim2.fromOffset(18,22),Size=UDim2.fromOffset(46,46),BackgroundColor3=style.Color,BackgroundTransparency=0.82,ZIndex=202,Parent=card})
+    corner(iconHolder,15)
+    local iconSpinRing=make("UIStroke",{Color=style.Color,Thickness=1.8,Transparency=0.25,ApplyStrokeMode=Enum.ApplyStrokeMode.Border,Parent=iconHolder})
     make("UIGradient",{Rotation=0,Color=ColorSequence.new({
         ColorSequenceKeypoint.new(0.00, style.Color),
         ColorSequenceKeypoint.new(0.5,  Color3.fromRGB(255,255,255)),
         ColorSequenceKeypoint.new(1.00, style.Color),
     }),Transparency=NumberSequence.new({
-        NumberSequenceKeypoint.new(0.00, 0.15),
-        NumberSequenceKeypoint.new(0.5,  0.7),
-        NumberSequenceKeypoint.new(1.00, 0.15),
+        NumberSequenceKeypoint.new(0.00, 0.1),
+        NumberSequenceKeypoint.new(0.5,  0.65),
+        NumberSequenceKeypoint.new(1.00, 0.1),
     }),Parent=iconSpinRing})
     local spinConn=RunService.RenderStepped:Connect(function(dt)
         if not iconSpinRing or not iconSpinRing.Parent then if spinConn then spinConn:Disconnect() end return end
         local g=iconSpinRing:FindFirstChildOfClass("UIGradient")
         if g then g.Rotation=(g.Rotation + dt*90) % 360 end
     end)
-    make("ImageLabel",{Image=style.Icon or ICONS.alert,ImageColor3=style.Color,BackgroundTransparency=1,AnchorPoint=Vector2.new(0.5,0.5),Position=UDim2.fromScale(0.5,0.5),Size=UDim2.fromOffset(20,20),ScaleType=Enum.ScaleType.Fit,ZIndex=203,Parent=iconHolder})
-    make("TextLabel",{Text=title,Font=Enum.Font.GothamBold,TextSize=14,TextColor3=C.White,TextXAlignment=Enum.TextXAlignment.Left,TextTruncate=Enum.TextTruncate.AtEnd,BackgroundTransparency=1,Position=UDim2.fromOffset(66,15),Size=UDim2.new(1,-108,0,17),ZIndex=202,Parent=card})
-    make("TextLabel",{Text=body,Font=Enum.Font.Gotham,TextSize=12,TextColor3=C.TextGray,TextXAlignment=Enum.TextXAlignment.Left,TextYAlignment=Enum.TextYAlignment.Top,TextWrapped=true,BackgroundTransparency=1,Position=UDim2.fromOffset(66,35),Size=UDim2.new(1,-78,0,30),ZIndex=202,Parent=card})
+    make("ImageLabel",{Image=style.Icon or ICONS.alert,ImageColor3=style.Color,BackgroundTransparency=1,AnchorPoint=Vector2.new(0.5,0.5),Position=UDim2.fromScale(0.5,0.5),Size=UDim2.fromOffset(23,23),ScaleType=Enum.ScaleType.Fit,ZIndex=203,Parent=iconHolder})
+    make("TextLabel",{Text=title,Font=Enum.Font.GothamBold,TextSize=15,TextColor3=C.White,TextXAlignment=Enum.TextXAlignment.Left,TextTruncate=Enum.TextTruncate.AtEnd,BackgroundTransparency=1,Position=UDim2.fromOffset(74,18),Size=UDim2.new(1,-116,0,18),ZIndex=202,Parent=card})
+    make("TextLabel",{Text=body,Font=Enum.Font.Gotham,TextSize=12,TextColor3=C.TextGray,TextXAlignment=Enum.TextXAlignment.Left,TextYAlignment=Enum.TextYAlignment.Top,TextWrapped=true,BackgroundTransparency=1,Position=UDim2.fromOffset(74,39),Size=UDim2.new(1,-86,0,34),ZIndex=202,Parent=card})
     -- "now" / "2m ago" style relative timestamp, refreshed once a second.
-    local timeLabel=make("TextLabel",{Text="now",Font=Enum.Font.Gotham,TextSize=10,TextColor3=C.TextDim,TextXAlignment=Enum.TextXAlignment.Right,BackgroundTransparency=1,AnchorPoint=Vector2.new(1,0),Position=UDim2.new(1,-32,0,15),Size=UDim2.fromOffset(50,14),ZIndex=202,Parent=card})
+    local timeLabel=make("TextLabel",{Text="now",Font=Enum.Font.Gotham,TextSize=10,TextColor3=C.TextDim,TextXAlignment=Enum.TextXAlignment.Right,BackgroundTransparency=1,AnchorPoint=Vector2.new(1,0),Position=UDim2.new(1,-32,0,18),Size=UDim2.fromOffset(50,14),ZIndex=202,Parent=card})
     local timeConn
     timeConn=task.spawn(function()
         while card and card.Parent do
@@ -4057,7 +4062,7 @@ function Tab:AddSubTab(name)
     local page=make("ScrollingFrame",{Size=UDim2.fromScale(1,1),BackgroundTransparency=1,Visible=false,CanvasSize=UDim2.new(0,0,0,0),AutomaticCanvasSize=Enum.AutomaticSize.Y,ScrollingDirection=Enum.ScrollingDirection.Y,ScrollBarThickness=2,ScrollBarImageColor3=C.Border,Parent=self._pagesHolder})
     pad(page,12,16,16,16)
     table.insert(tab._window._noDrag,page)
-    local card=make("Frame",{Size=UDim2.new(1,-32,0,0),AutomaticSize=Enum.AutomaticSize.Y,BackgroundColor3=C.CardBg,BackgroundTransparency=0.12,Parent=page})
+    local card=make("Frame",{Size=UDim2.new(1,-32,0,0),AutomaticSize=Enum.AutomaticSize.Y,BackgroundColor3=C.CardBg,BackgroundTransparency=0,Parent=page})
     corner(card,14);stroke(card);pad(card,18,18,20,20)
     -- Subtle top-to-bottom depth shading. This multiplies against the
     -- card's own CardBg colour (arbitrary grey values that don't collide
@@ -4094,7 +4099,7 @@ end
 function SubTab:AddToggle(opts)
     opts=opts or {}; local value=opts.Default==true
     local row=newRow(self._card,30); rowLabels(row,opts.Name or "Toggle",opts.Description,44)
-    local pill=make("TextButton",{Text="",Size=UDim2.fromOffset(38,20),AnchorPoint=Vector2.new(1,0.5),Position=UDim2.new(1,0,0.5,0),BackgroundColor3=C.Badge,BackgroundTransparency=0.08,Parent=row})
+    local pill=make("TextButton",{Text="",Size=UDim2.fromOffset(38,20),AnchorPoint=Vector2.new(1,0.5),Position=UDim2.new(1,0,0.5,0),BackgroundColor3=C.Badge,BackgroundTransparency=0,Parent=row})
     circle(pill)
     -- Blue accent outline around the pill toggle: bright when on, dim when
     -- off, with a soft outer halo for depth (theme-aware via stroke)
@@ -4340,7 +4345,7 @@ function SubTab:AddDropdown(opts)
     local vl=make("TextLabel",{Text=tostring(value),Font=Enum.Font.Gotham,TextSize=12,TextColor3=C.TextGray,TextXAlignment=Enum.TextXAlignment.Left,TextTruncate=Enum.TextTruncate.AtEnd,BackgroundTransparency=1,Position=UDim2.fromOffset(8,0),Size=UDim2.new(1,-26,1,0),Parent=btn})
     sortIcon(btn)
     local win=self._window; local sp=self._page; local tp=self._tab._page
-    local list=make("Frame",{Visible=false,Active=true,Position=UDim2.fromOffset(0,0),Size=UDim2.new(0,LW,0,0),BackgroundColor3=C.Element,BackgroundTransparency=0.08,ClipsDescendants=true,ZIndex=100,Parent=win.ScreenGui})
+    local list=make("Frame",{Visible=false,Active=true,Position=UDim2.fromOffset(0,0),Size=UDim2.new(0,LW,0,0),BackgroundColor3=C.Element,BackgroundTransparency=0,ClipsDescendants=true,ZIndex=100,Parent=win.ScreenGui})
     corner(list,8);stroke(list,C.Border); table.insert(win._noDrag,list)
     local sb; local fq=""
     if searchable then
@@ -4433,7 +4438,7 @@ function SubTab:AddMultiDropdown(opts)
     local vl=make("TextLabel",{Text="None",Font=Enum.Font.Gotham,TextSize=12,TextColor3=C.TextGray,TextXAlignment=Enum.TextXAlignment.Left,TextTruncate=Enum.TextTruncate.AtEnd,BackgroundTransparency=1,Position=UDim2.fromOffset(8,0),Size=UDim2.new(1,-26,1,0),Parent=btn})
     sortIcon(btn)
     local win=self._window; local sp=self._page; local tp=self._tab._page
-    local list=make("Frame",{Visible=false,Active=true,Position=UDim2.fromOffset(0,0),Size=UDim2.new(0,LW,0,0),BackgroundColor3=C.Element,BackgroundTransparency=0.08,ClipsDescendants=true,ZIndex=100,Parent=win.ScreenGui})
+    local list=make("Frame",{Visible=false,Active=true,Position=UDim2.fromOffset(0,0),Size=UDim2.new(0,LW,0,0),BackgroundColor3=C.Element,BackgroundTransparency=0,ClipsDescendants=true,ZIndex=100,Parent=win.ScreenGui})
     corner(list,8);stroke(list,C.Border); table.insert(win._noDrag,list)
     local sb; local fq=""
     if searchable then
@@ -4627,7 +4632,7 @@ function SubTab:AddColorPicker(opts)
 
     local win=self._window; local sp=self._page; local tp=self._tab._page
     local PW=200
-    local panel=make("Frame",{Visible=false,Active=true,Size=UDim2.fromOffset(PW,0),BackgroundColor3=C.Element,BackgroundTransparency=0.08,ClipsDescendants=true,ZIndex=100,Parent=win.ScreenGui})
+    local panel=make("Frame",{Visible=false,Active=true,Size=UDim2.fromOffset(PW,0),BackgroundColor3=C.Element,BackgroundTransparency=0,ClipsDescendants=true,ZIndex=100,Parent=win.ScreenGui})
     corner(panel,8);stroke(panel,C.Border); table.insert(win._noDrag,panel)
     local inner=make("Frame",{Position=UDim2.fromOffset(0,0),Size=UDim2.fromOffset(PW,168),BackgroundTransparency=1,ZIndex=101,Parent=panel})
     pad(inner,10,10,10,10)
