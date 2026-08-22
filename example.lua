@@ -60,22 +60,26 @@ Basics:AddButton({
 Gameplay:AddSection("Difficulty")
 
 Gameplay:AddDropdown({
-    Name = "Difficulty", Options = { "Easy", "Normal", "Hard" }, Default = "Normal",
+    Name = "Difficulty", Description = "How tough enemies and stages are overall.",
+    Options = { "Easy", "Normal", "Hard" }, Default = "Normal",
     Callback = function(value) print("Difficulty:", value) end,
 })
 
 Gameplay:AddToggle({
-    Name = "Auto-Sprint", Default = false, Flag = "autoSprint",
+    Name = "Auto-Sprint", Description = "Run automatically when the analog stick is pushed all the way.",
+    Default = false, Flag = "autoSprint",
     Callback = function(value) print("Auto-sprint:", value) end,
 })
 
 Gameplay:AddSlider({
-    Name = "Camera Sensitivity", Min = 1, Max = 10, Default = 5, Flag = "camSensitivity",
+    Name = "Camera Sensitivity", Description = "How fast the camera turns when you move the stick or mouse.",
+    Min = 1, Max = 10, Default = 5, Flag = "camSensitivity",
     Callback = function(value) print("Sensitivity:", value) end,
 })
 
 Gameplay:AddToggle({
-    Name = "Camera Shake", Default = true, Flag = "camShake",
+    Name = "Camera Shake", Description = "Adds impact shake on hits, explosions, and landings.",
+    Default = true, Flag = "camShake",
     Callback = function(value) print("Camera shake:", value) end,
 })
 
